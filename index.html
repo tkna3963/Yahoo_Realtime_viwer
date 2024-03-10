@@ -11,8 +11,13 @@
     <div id="Main"></div>
     <script src="main_script.js"></script>
     <script>
-        function reloadPage() { location.reload(); }
-        setTimeout(reloadPage, 1000); // 1秒ごとにページをリロードする
+        function updateData() {
+            const yahoo_data = yahooShingenn();
+            var currentDateTimeElement = document.getElementById("Main");
+            currentDateTimeElement.textContent = yahoo_data;
+        }
+        updateData(); // 初回の実行
+        setInterval(updateData, 1000);
     </script>
 </body>
 
