@@ -2,7 +2,6 @@ function seismicIntensityConversion(char) {
     try {
         var unicodeValue = char.charCodeAt(0);
         var intensity = unicodeValue - 100;
-
         if (intensity === 1) {
             return -3;
         } else if (intensity === 2) {

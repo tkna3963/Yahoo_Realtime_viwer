@@ -4,16 +4,35 @@
 <head>
     <title>RealTime_Yahoo_Earthquake_Info BY TKYT612314</title>
     <base target="_top">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 700px;
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Yahoo Shingenn data </h1>
+<<<<<<< HEAD
+    <script src="main_script.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+=======
     <div id="Main"></div>
     <script src="main_script.js"></script>
+>>>>>>> 457e465eb81c85ba859705f358c763587a2369f0
     <script>
         const yahoo_data = yahooShingenn();
         var currentDateTimeElement = document.getElementById("Main");
         currentDateTimeElement.textContent = yahoo_data;
+        var map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], 10);
+        L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', { attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors' }).addTo(map);
+        var marker = L.marker([yahoo_data[8], yahoo_data[9]]).addTo(map);
+        marker.bindPopup(yahoo_data[4] + ":" + yahoo_data[5]).openPopup();
+        var center = [yahoo_data[8], yahoo_data[9]]; // 中心座標
+        var P_circle = L.circle(center, { color: 'red', fillColor: 'red', fillOpacity: 0.5, radius: yahoo_data[10] * 1000 }).addTo(map);
+        var S_circle = L.circle(center, { color: 'blue', fillColor: 'blue', fillOpacity: 0.5, radius: yahoo_data[11] * 1000 }).addTo(map);
     </script>
 </body>
 
