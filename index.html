@@ -11,22 +11,27 @@
 <body>
     <h1>Yahoo Shingenn data</h1>
     <div id="Main"></div>
-    <div id="map" style="height: 400px;"></div>
+    <div id="map" style="height:700px;"></div>
     <script src="main_script.js"></script>
     <script>
         function updateData() {
             const yahoo_data = yahooShingenn();
-            var currentDateTimeElement = document.getElementById("Main");
-            currentDateTimeElement.textContent = yahoo_data;
+            var yahoo_data_Element = document.getElementById("Main");
+            yahoo_data_Element.innerHTML = ""; 
+            var dataHTML = "";
+            
+            dataHTML += "<p><strong>現在時刻:</strong> " + yahoo_data[0] + "</p>";
+            dataHTML += "<p><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
+            dataHTML += "<p><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
+            dataHTML += "<p><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
+            yahoo_data_Element.innerHTML = dataHTML;
 
             var map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], 10);
             L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
                 attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
             }).addTo(map);
-
             var marker = L.marker([yahoo_data[8], yahoo_data[9]]).addTo(map);
-            marker.bindPopup(yahoo_data[4] + ":" + yahoo_data[5]).openPopup();
-
+            marker.bindPopup("<strong>推定震央地:</strong>"+yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")<br>" +"<strong>推定震度:</strong> " + yahoo_data[5] + "<br>" +"<strong>推定マグニチュード:</strong> " + yahoo_data[6] + "<br>" +"<strong>推定深さ:</strong> " + yahoo_data[7]).openPopup();
             var center = [yahoo_data[8], yahoo_data[9]]; // 中心座標
             var P_circle = L.circle(center, {
                 color: 'red',
@@ -34,7 +39,6 @@
                 fillOpacity: 0.5,
                 radius: yahoo_data[10] * 1000
             }).addTo(map);
-
             var S_circle = L.circle(center, {
                 color: 'blue',
                 fillColor: 'blue',
@@ -42,7 +46,8 @@
                 radius: yahoo_data[11] * 1000
             }).addTo(map);
         }
-        updateData(); // 初回の実行
+
+        updateData()
         setInterval(updateData, 1000);
     </script>
 </body>

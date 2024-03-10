@@ -2,6 +2,7 @@ function seismicIntensityConversion(char) {
     try {
         var unicodeValue = char.charCodeAt(0);
         var intensity = unicodeValue - 100;
+
         if (intensity === 1) {
             return -3;
         } else if (intensity === 2) {
@@ -68,7 +69,7 @@ function formatDateTimeForUrl(dateTime) {
 
 function yahooShingenn() {
     const currentDateTime = new Date();
-    //const currentDateTime = new Date(2024, 0, 1, 16, 6, 19);
+    //const currentDateTime = new Date(2024, 0, 1, 16, 11,5);
     const fiveSecondsAgo = new Date(currentDateTime.getTime() - 5 * 1000);
     const time_set = formatDateTimeForUrl(fiveSecondsAgo);
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${time_set}.json`;
@@ -81,7 +82,7 @@ function yahooShingenn() {
         if (yahoo_data.hypoInfo === null) {
             const strongEarthquake = yahoo_data.realTimeData.intensity;
             const maxstrongEarthquake = Math.max(...strongEarthquake.split('').map(char => seismicIntensityConversion(char)));
-            return [currentDateTime,maxstrongEarthquake, apiUrl, 0, "ホームポイント","緊急地震速報はでていません。", 0, 0,36.0,137.9, 0, 0];
+            return [currentDateTime,maxstrongEarthquake, apiUrl,"緊急地震速報は出ていません。",0,0, 0, 0,36.0,137.9, 0, 0];
         } else {
             const reportNum = yahoo_data.hypoInfo.items[0].reportNum;
             const isFinal = yahoo_data.hypoInfo.items[0].isFinal;
@@ -95,7 +96,7 @@ function yahooShingenn() {
             const Wave_longitude = yahoo_data.psWave.items[0].longitude.replace("E", "");
             const pRadius = parseFloat(yahoo_data.psWave.items[0].pRadius).toFixed(0);
             const sRadius = parseFloat(yahoo_data.psWave.items[0].sRadius).toFixed(0);
-            const report = isFinal ? "final Report" : `Report ${reportNum}`;
+            const report = isFinal ? `最終報(第${reportNum}報)` : `第${reportNum}報`;
             return [currentDateTime, maxstrongEarthquake, apiUrl, report, regionName, calcIntensity, magnitude, depth, Wave_latitude, Wave_longitude, pRadius, sRadius];
         }
     } else {
