@@ -6,10 +6,11 @@
     <base target="_top">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="stylesheet.css" />
 </head>
 
 <body>
-    <h1>Yahoo Shingenn data</h1>
+    <h1>Yahooリアルタイム地震情報掲示板</h1>
     <div id="Main"></div>
     <div id="map" style="height:700px;"></div>
     <script src="main_script.js"></script>
@@ -20,10 +21,15 @@
             yahoo_data_Element.innerHTML = ""; 
             var dataHTML = "";
             
-            dataHTML += "<p><strong>現在時刻:</strong> " + yahoo_data[0] + "</p>";
-            dataHTML += "<p><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
+            dataHTML += "<p><strong id='text_box'>現在時刻:</strong> " + yahoo_data[0] + "</p>"; 
+            dataHTML += "<p><strong id='text_box'>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
             dataHTML += "<p><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
-            dataHTML += "<p><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
+            dataHTML += "<p><strong id='text_box'>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
+            dataHTML += "<p><strong id='text_box'>推定震央地:</strong> " + yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")"+ "</p>";
+            dataHTML += "<p><strong id='text_box'>推定最大震度:</strong> " + yahoo_data[5] + "</p>";
+            dataHTML += "<p><strong id='text_box'>推定規模(マグニチュード):</strong> " + yahoo_data[6] + "</p>";
+            dataHTML += "<p><strong id='text_box'>推定深さ:</strong> " + yahoo_data[7] + "</p>";
+            dataHTML += "<p><strong id='text_box'>推定波位置:</strong>" +"P波:約"+yahoo_data[10]+"km"+"   "+"S波:約"+yahoo_data[11]+"km" + "</p>";
             yahoo_data_Element.innerHTML = dataHTML;
 
             var map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], 10);
@@ -31,7 +37,7 @@
                 attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
             }).addTo(map);
             var marker = L.marker([yahoo_data[8], yahoo_data[9]]).addTo(map);
-            marker.bindPopup("<strong>推定震央地:</strong>"+yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")<br>" +"<strong>推定震度:</strong> " + yahoo_data[5] + "<br>" +"<strong>推定マグニチュード:</strong> " + yahoo_data[6] + "<br>" +"<strong>推定深さ:</strong> " + yahoo_data[7]).openPopup();
+            marker.bindPopup("<strong>ピンが刺された位置:</strong>"+yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")<br>").openPopup();
             var center = [yahoo_data[8], yahoo_data[9]]; // 中心座標
             var P_circle = L.circle(center, {
                 color: 'red',
@@ -50,6 +56,7 @@
         updateData()
         setInterval(updateData, 1000);
     </script>
+    <img src="http://early-est.rm.ingv.it/t50.jpg" id="Early_Est_imgae"></img>
 </body>
 
 </html>
