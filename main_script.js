@@ -70,7 +70,7 @@ function formatDateTimeForUrl(dateTime) {
 function yahooShingenn() {
     const currentDateTime = new Date();
     //const currentDateTime = new Date(2024, 0, 1, 16,10,0);
-    const fiveSecondsAgo = new Date(currentDateTime.getTime() - 0 * 1000);
+    const fiveSecondsAgo = new Date(currentDateTime.getTime() - 3 * 1000);
     const time_set = formatDateTimeForUrl(fiveSecondsAgo);
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${time_set}.json`;
     const xhr = new XMLHttpRequest();
