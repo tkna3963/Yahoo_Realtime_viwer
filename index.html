@@ -23,7 +23,7 @@
             
             dataHTML += "<p><strong id='text_box'>現在時刻:</strong> " + yahoo_data[0] + "</p>"; 
             dataHTML += "<p><strong id='text_box'>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
-            dataHTML += "<p><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
+            dataHTML += "<p><strong id='text_box'>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
             dataHTML += "<p><strong id='text_box'>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
             dataHTML += "<p><strong id='text_box'>推定震央地:</strong> " + yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")"+ "</p>";
             dataHTML += "<p><strong id='text_box'>推定最大震度:</strong> " + yahoo_data[5] + "</p>";
@@ -56,7 +56,6 @@
         updateData()
         setInterval(updateData, 1000);
     </script>
-    <img src="http://early-est.rm.ingv.it/t50.jpg" id="Early_Est_imgae"></img>
 </body>
 
 </html>
