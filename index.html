@@ -7,29 +7,44 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="stylesheet.css" />
+    <style>body {background-color: saddlebrown;}</style>
 </head>
 
 <body>
-    <h1>Yahooリアルタイム地震情報掲示板</h1>
+    <h1>Yahooリアルタイム地震情報掲示板      <a href="https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/">公式様</a></h1>
     <div id="Main"></div>
     <div id="map" style="height:700px;"></div>
     <script src="main_script.js"></script>
     <script>
+
         function updateData() {
             const yahoo_data = yahooShingenn();
             var yahoo_data_Element = document.getElementById("Main");
             yahoo_data_Element.innerHTML = ""; 
             var dataHTML = "";
-            
-            dataHTML += "<p><strong id='text_box'>現在時刻:</strong> " + yahoo_data[0] + "</p>"; 
-            dataHTML += "<p><strong id='text_box'>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
-            dataHTML += "<p><strong id='text_box'>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
-            dataHTML += "<p><strong id='text_box'>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
-            dataHTML += "<p><strong id='text_box'>推定震央地:</strong> " + yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")"+ "</p>";
-            dataHTML += "<p><strong id='text_box'>推定最大震度:</strong> " + yahoo_data[5] + "</p>";
-            dataHTML += "<p><strong id='text_box'>推定規模(マグニチュード):</strong> " + yahoo_data[6] + "</p>";
-            dataHTML += "<p><strong id='text_box'>推定深さ:</strong> " + yahoo_data[7] + "</p>";
-            dataHTML += "<p><strong id='text_box'>推定波位置:</strong>" +"P波(初期微動):約"+yahoo_data[10]+"km"+"   "+"S波(主要動):約"+yahoo_data[11]+"km" + "</p>";
+            dataHTML += "<p id='text_box'><strong>現在時刻:</strong> " + yahoo_data[0] + "</p>"; 
+            dataHTML += "<p id='text_box'><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
+            dataHTML += "<p id='text_box'><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
+            dataHTML += "<p id='text_box'><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
+            dataHTML+="<button onclick='toggleElements()'>緊急地震速報を表示/非表示</button>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (isElementsVisible ? "block" : "none") + ";'>";
+            dataHTML += "<p id='text_box'><strong>推定震央地:</strong> " + yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")"+ "</p>";
+            dataHTML += "</div>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (isElementsVisible ? "block" : "none") + ";'>";
+            dataHTML += "<p id='text_box'><strong>推定最大震度:</strong> " + yahoo_data[5] +"("+scaleLevalConversion(yahoo_data[5])+")"+"</p>";
+            dataHTML += "</div>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (isElementsVisible ? "block" : "none") + ";'>";
+            dataHTML+=  "<img src="+scaleLevalImgConversion(yahoo_data[5])+">"+"</img>";
+            dataHTML += "</div>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (isElementsVisible ? "block" : "none") + ";'>";
+            dataHTML += "<p id='text_box'><strong>推定規模(マグニチュード):</strong> " + yahoo_data[6] + "</p>";
+            dataHTML += "</div>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (isElementsVisible ? "block" : "none") + ";'>";
+            dataHTML += "<p id='text_box'><strong>推定深さ:</strong> " + yahoo_data[7] + "</p>";
+            dataHTML += "</div>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (isElementsVisible ? "block" : "none") + ";'>";
+            dataHTML += "<p id='text_box'><strong>推定波位置:</strong>" +"P波(初期微動):約"+yahoo_data[10]+"km"+"   "+"S波(主要動):約"+yahoo_data[11]+"km" + "</p>";
+            dataHTML += "</div>";
             yahoo_data_Element.innerHTML = dataHTML;
 
             var map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], 10);
@@ -40,14 +55,14 @@
             marker.bindPopup("<strong>ピンが刺された位置:</strong>"+yahoo_data[4]+"(" + yahoo_data[8] + ", " + yahoo_data[9] + ")<br>").openPopup();
             var center = [yahoo_data[8], yahoo_data[9]]; // 中心座標
             var P_circle = L.circle(center, {
-                color: 'red',
-                fillColor: 'red',
+                color: 'blue',
+                fillColor: scaleColorConversion(yahoo_data[5]),
                 fillOpacity: 0.5,
                 radius: yahoo_data[10] * 1000
             }).addTo(map);
             var S_circle = L.circle(center, {
-                color: 'blue',
-                fillColor: 'blue',
+                color: 'red',
+                fillColor: scaleColorConversion(yahoo_data[5]),
                 fillOpacity: 0.5,
                 radius: yahoo_data[11] * 1000
             }).addTo(map);

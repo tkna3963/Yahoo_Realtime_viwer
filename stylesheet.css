@@ -1,3 +1,20 @@
 #text_box {
- color:blue;
+    width: auto;
+    /* 幅 */
+    height: 30px;
+    /* 高さ */
+    padding: 5px;
+    /* 内側の余白 */
+    border: 1px solid #ccc;
+    /* ボーダー */
+    border-radius: 5px;
+    /* 角丸 */
+    outline: none;
+    /* フォーカス時の枠線を非表示 */
+    font-size: 16px;
+    /* フォントサイズ */
+    color: white;
+    /* テキストの色を白に設定 */
+    background-color: black;
+    /* 背景色を黒に設定 */
 }
