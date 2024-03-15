@@ -29,7 +29,7 @@
             dataHTML += "<p><strong id='text_box'>推定最大震度:</strong> " + yahoo_data[5] + "</p>";
             dataHTML += "<p><strong id='text_box'>推定規模(マグニチュード):</strong> " + yahoo_data[6] + "</p>";
             dataHTML += "<p><strong id='text_box'>推定深さ:</strong> " + yahoo_data[7] + "</p>";
-            dataHTML += "<p><strong id='text_box'>推定波位置:</strong>" +"P波:約"+yahoo_data[10]+"km"+"   "+"S波:約"+yahoo_data[11]+"km" + "</p>";
+            dataHTML += "<p><strong id='text_box'>推定波位置:</strong>" +"P波(初期微動):約"+yahoo_data[10]+"km"+"   "+"S波(主要動):約"+yahoo_data[11]+"km" + "</p>";
             yahoo_data_Element.innerHTML = dataHTML;
 
             var map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], 10);

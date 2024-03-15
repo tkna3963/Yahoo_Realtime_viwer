@@ -82,7 +82,7 @@ function yahooShingenn() {
         if (yahoo_data.hypoInfo === null) {
             const strongEarthquake = yahoo_data.realTimeData.intensity;
             const maxstrongEarthquake = Math.max(...strongEarthquake.split('').map(char => seismicIntensityConversion(char)));
-            return [currentDateTime, maxstrongEarthquake, apiUrl, "緊急地震速報は出ていません。", 0, 0, 0,"デフォルト設定位置", 36.0, 137.9, 0, 0];
+            return [currentDateTime, maxstrongEarthquake, apiUrl, "緊急地震速報は出ていません。", 0, 0, 0,0, 36.0, 137.9, 0, 0];
         } else {
             const reportNum = yahoo_data.hypoInfo.items[0].reportNum;
             const isFinal = yahoo_data.hypoInfo.items[0].isFinal;
