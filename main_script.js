@@ -135,10 +135,18 @@ function formatDateTimeForUrl(dateTime) {
 }
 
 function yahooShingenn() {
-    const currentDateTime = new Date();
-    //const currentDateTime = new Date(2024, 0, 1, 16,11,0);
-    const fiveSecondsAgo = new Date(currentDateTime.getTime() - 0 * 1000);
-    const time_set = formatDateTimeForUrl(fiveSecondsAgo);
+    var timeMachineInput = document.getElementById("time_machine");
+    var timeMachineValue = timeMachineInput.value;
+
+    var set_time;
+    if (timeMachineValue === "") {
+        currentDateTime = new Date();
+        set_time = new Date(currentDateTime.getTime() - 3 * 1000);
+    } else {
+        set_time = new Date(timeMachineValue);
+    }    
+    
+    const time_set = formatDateTimeForUrl(set_time);
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${time_set}.json`;
     const xhr = new XMLHttpRequest();
     xhr.open("GET", apiUrl, false);
@@ -179,25 +187,4 @@ function yahooShingenn() {
         console.error('リクエストが失敗しました。');
         return null; // エラー時はnullを返すなど、適切なエラー処理を行う
     }
-}
-
-function toggleElements() {
-    var earthquakeInfo = document.getElementById("earthquake_info");
-    if (earthquakeInfo.style.display === "none") {
-        earthquakeInfo.style.display = "block";
-    } else {
-        earthquakeInfo.style.display = "none";
-    }
-}
-
-var isElementsVisible = true;
-
-function toggleElements() {
-    var earthquakeInfo = document.getElementById("earthquake_info");
-    if (isElementsVisible) {
-        earthquakeInfo.style.display = "none";
-    } else {
-        earthquakeInfo.style.display = "block";
-    }
-    isElementsVisible = !isElementsVisible;
 }
