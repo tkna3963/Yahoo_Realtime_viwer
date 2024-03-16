@@ -9,20 +9,26 @@
     <link rel="stylesheet" href="stylesheet.css" />
     <style>
         body {
-            background-color: saddlebrown;
+            background-color:#476ed1;
         }
     </style>
 </head>
 
 <body>
-    <h1>Yahooリアルタイム地震情報掲示板 <a href="https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/">公式様</a></h1>
-    <label for='time_machine'>設定時刻:</label>;
+    <h1>Yahooリアルタイム地震情報掲示板 <a href="https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/" target="_blank">公式様:Yahooリアルタイム震度</a></h1>
+    <label id="text_box" for='time_machine'>タイムマシーン設定時刻:</label>
     <input type='text' id='time_machine' name='time_machine'>
     <div id="Main"></div>
     <div id="map" style="height:700px;"></div>
     <div id="earthquake_info"></div> <!-- この行を追加 -->
     <script src="main_script.js"></script>
     <script>
+        var previousLocation = null;
+        var map = null;
+        var marker = null;
+        var P_circle = null;
+        var S_circle = null;
+
         function updateData() {
             const yahoo_data = yahooShingenn();
 
@@ -37,8 +43,8 @@
             var yahoo_data_Element = document.getElementById("Main");
             yahoo_data_Element.innerHTML = "";
             var dataHTML = "";
-            dataHTML += "<p id='text_box'><strong>現在時刻:</strong> " + yahoo_data[0] + "</p>";
-            dataHTML += "<p id='text_box'><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "'>" + yahoo_data[2] + "</a></p>";
+            dataHTML += "<p id='text_box'><strong>情報更新時刻:</strong> " + formatTimeDate(yahoo_data[0]) + "</p>";
+            dataHTML += "<p id='text_box'><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "' target='_blank'>" + yahoo_data[2] + "</a></p>";
             dataHTML += "<p id='text_box'><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
             dataHTML += "<p id='text_box'><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
@@ -57,34 +63,40 @@
             dataHTML += "<p id='text_box'><strong>推定深さ:</strong> " + yahoo_data[7] + "</p>";
             dataHTML += "</div>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
-            dataHTML += "<p id='text_box'><strong>推定波位置:</strong>" + "P波(初期微動):約" + yahoo_data[10] + "km" + "   " + "S波(主要動):約" + yahoo_data[11] + "km" + "</p>";
+            dataHTML += "<p id='text_box'><strong>推定実体波位置:</strong>" + "P波:約" + yahoo_data[10] + "km" + "   " + "S波:約" + yahoo_data[11] + "km" + "</p>";
             dataHTML += "</div>";
             yahoo_data_Element.innerHTML = dataHTML;
-            
-            if (!(yahoo_data[3] === "緊急地震速報は出ていません。")){
-             var map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], 10);
-             L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
-                 attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
-             }).addTo(map);
-             var marker = L.marker([yahoo_data[8], yahoo_data[9]]).addTo(map);
-             marker.bindPopup("<strong>ピンが刺された位置:</strong>" + yahoo_data[4] + "(" + yahoo_data[8] + ", " + yahoo_data[9] + ")<br>").openPopup();
-             var center = [yahoo_data[8], yahoo_data[9]]; // 中心座標
-             var P_circle = L.circle(center, {
-                 color: 'blue',
-                 fillColor: scaleColorConversion(yahoo_data[5]),
-                 fillOpacity: 0.5,
-                 radius: yahoo_data[10] * 1000
-             }).addTo(map);
-             var S_circle = L.circle(center, {
-                color: 'red',
-                fillColor: scaleColorConversion(yahoo_data[5]),
-                fillOpacity: 0.5,
-                radius: yahoo_data[11] * 1000
-            }).addTo(map);
+
+            if (!(yahoo_data[3] === "緊急地震速報は出ていません。")) {
+                if (!map) {
+                    map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], calculateZoomLevel(yahoo_data[10]));
+                    L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
+                        attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
+                    }).addTo(map);
+                    var customIcon = L.icon({iconUrl: 'Required_files/epicenter.png',iconSize: [30, 30]});
+                    marker = L.marker([yahoo_data[8], yahoo_data[9]], {icon: customIcon}).addTo(map);
+                    P_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
+                        color: 'blue',
+                        fillColor: scaleColorConversion(yahoo_data[5]),
+                        fillOpacity: 0.5,
+                        radius: yahoo_data[10] * 1000
+                    }).addTo(map);
+                    S_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
+                        color: 'red',
+                        fillColor: scaleColorConversion(yahoo_data[5]),
+                        fillOpacity: 0.5,
+                        radius: yahoo_data[11] * 1000
+                    }).addTo(map);
+                } else {
+                    map.setView([yahoo_data[8], yahoo_data[9]], calculateZoomLevel(yahoo_data[10]));
+                    marker.setLatLng([yahoo_data[8], yahoo_data[9]]);
+                    P_circle.setLatLng([yahoo_data[8], yahoo_data[9]]).setRadius(yahoo_data[10] * 1000);
+                    S_circle.setLatLng([yahoo_data[8], yahoo_data[9]]).setRadius(yahoo_data[11] * 1000);
+                }
             }
         }
 
-        updateData()
+        updateData();
         setInterval(updateData, 1000);
     </script>
 </body>

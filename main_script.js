@@ -1,4 +1,3 @@
-User
 function seismicIntensityConversion(char) {
     try {
         var unicodeValue = char.charCodeAt(0);
@@ -101,16 +100,16 @@ function scaleLevalConversion(scaleData) {
 function scaleLevalImgConversion(scaleData) {
     try {
         const levelMap = {
-            "0": "Shindo_img\\Shindo_0.png",
-            "1": "Shindo_img\\Shindo_1.png",
-            "2": "Shindo_img\\Shindo_2.png",
-            "3": "Shindo_img\\Shindo_3.png",
-            "4": "Shindo_img\\Shindo_4.png",
-            "5-": "Shindo_img\\Shindo_5-.png",
-            "5+": "Shindo_img\\Shindo_5+.png",
-            "6-": "Shindo_img\\Shindo_6-.png",
-            "6+": "Shindo_img\\Shindo_6+.png",
-            "7": "Shindo_img\\Shindo_7.png"
+            "0": "Required_files\\Shindo_0.png",
+            "1": "Required_files\\Shindo_1.png",
+            "2": "Required_files\\Shindo_2.png",
+            "3": "Required_files\\Shindo_3.png",
+            "4": "Required_files\\Shindo_4.png",
+            "5-": "Required_files\\Shindo_5-.png",
+            "5+": "Required_files\\Shindo_5+.png",
+            "6-": "Required_files\\Shindo_6-.png",
+            "6+": "Required_files\\Shindo_6+.png",
+            "7": "Required_files\\Shindo_7.png"
         };
 
         return levelMap[String(scaleData)] || "#0d0d66";
@@ -119,6 +118,14 @@ function scaleLevalImgConversion(scaleData) {
     }
 }
 
+function calculateZoomLevel(distance) {
+    // 距離に基づいて適切なズーム レベルを計算する
+    if (distance <= 100) return 10;   // 距離が 100km 未満の場合、ズーム レベル 10 を返す
+    if (distance <= 500) return 8;    // 距離が 500km 未満の場合、ズーム レベル 8 を返す
+    if (distance <= 1000) return 6;   // 距離が 1000km 未満の場合、ズーム レベル 6 を返す
+    if (distance <= 1500) return 5;   // 距離が 1500km 未満の場合、ズーム レベル 5 を返す
+    return 5;                         // それ以外の場合、ズーム レベル 4 を返す
+}
 
 function padZero(value) {
     return value < 10 ? '0' + value : value;
@@ -132,6 +139,14 @@ function formatDateTimeForUrl(dateTime) {
     const minutes = padZero(dateTime.getMinutes());
     const seconds = padZero(dateTime.getSeconds());
     return `${year}${month}${date}/${year}${month}${date}${hours}${minutes}${seconds}`;
+}
+
+function formatTimeDate(dateString, timeZone = 'Asia/Tokyo') {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: timeZone };
+    const date = new Date(dateString);
+    const formatter = new Intl.DateTimeFormat('ja-JP', options);
+    const formattedDate = formatter.format(date);
+    return formattedDate.replace(/\//g, '年').replace(' ', '日').replace(':', '時').replace(':', '分') + '秒';
 }
 
 function yahooShingenn() {
