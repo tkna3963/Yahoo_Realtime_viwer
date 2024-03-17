@@ -20,7 +20,8 @@
     <input type='text' id='time_machine' name='time_machine'>
     <div id="Main"></div>
     <div id="map" style="height:700px;"></div>
-    <div id="earthquake_info"></div> <!-- この行を追加 -->
+    <audio id="sound" src="Required_files\Continue1.wav"></audio>
+    <div id="earthquake_info"></div> 
     <script src="main_script.js"></script>
     <script>
         var previousLocation = null;
@@ -33,17 +34,19 @@
             const yahoo_data = yahooShingenn();
 
             var earthquakeInfo = document.getElementById("earthquake_info");
-
+            
+            let sound = document.getElementById("sound")
             if (yahoo_data[3] === "緊急地震速報は出ていません。") {
                 earthquakeInfo.style.display = "none";
             } else {
                 earthquakeInfo.style.display = "block";
+                sound.play(); 
             }
 
             var yahoo_data_Element = document.getElementById("Main");
             yahoo_data_Element.innerHTML = "";
             var dataHTML = "";
-            dataHTML += "<p id='text_box'><strong>情報更新時刻:</strong> " + formatTimeDate(yahoo_data[0]) + "</p>";
+            dataHTML += "<p id='text_box'><strong>情報時刻:</strong> " + formatTimeDate(yahoo_data[0])+ "</p>";
             dataHTML += "<p id='text_box'><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "' target='_blank'>" + yahoo_data[2] + "</a></p>";
             dataHTML += "<p id='text_box'><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
             dataHTML += "<p id='text_box'><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
@@ -54,9 +57,6 @@
             dataHTML += "<p id='text_box'><strong>推定最大震度:</strong> " + yahoo_data[5] + "(" + scaleLevalConversion(yahoo_data[5]) + ")" + "</p>";
             dataHTML += "</div>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
-            dataHTML += "<img src=" + scaleLevalImgConversion(yahoo_data[5]) + ">" + "</img>";
-            dataHTML += "</div>";
-            dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
             dataHTML += "<p id='text_box'><strong>推定規模(マグニチュード):</strong> " + yahoo_data[6] + "</p>";
             dataHTML += "</div>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
@@ -64,6 +64,9 @@
             dataHTML += "</div>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
             dataHTML += "<p id='text_box'><strong>推定実体波位置:</strong>" + "P波:約" + yahoo_data[10] + "km" + "   " + "S波:約" + yahoo_data[11] + "km" + "</p>";
+            dataHTML += "</div>";
+            dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
+            dataHTML += "<img src=" + scaleLevalImgConversion(yahoo_data[5]) + ">" + "</img>";
             dataHTML += "</div>";
             yahoo_data_Element.innerHTML = dataHTML;
 
@@ -78,13 +81,13 @@
                     P_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
                         color: 'blue',
                         fillColor: scaleColorConversion(yahoo_data[5]),
-                        fillOpacity: 0.5,
+                        fillOpacity: 0.3,
                         radius: yahoo_data[10] * 1000
                     }).addTo(map);
                     S_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
                         color: 'red',
                         fillColor: scaleColorConversion(yahoo_data[5]),
-                        fillOpacity: 0.5,
+                        fillOpacity: 0.7,
                         radius: yahoo_data[11] * 1000
                     }).addTo(map);
                 } else {
@@ -95,7 +98,6 @@
                 }
             }
         }
-
         updateData();
         setInterval(updateData, 1000);
     </script>
