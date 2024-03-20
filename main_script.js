@@ -180,6 +180,7 @@ function yahooShingenn() {
             console.log(result_data)
             return result_data
         } else {
+            const reportId=yahoo_data.hypoInfo.items[0].reportId;
             const reportNum = yahoo_data.hypoInfo.items[0].reportNum;
             const isFinal = yahoo_data.hypoInfo.items[0].isFinal;
             const strongEarthquake = yahoo_data.realTimeData.intensity;
@@ -202,9 +203,9 @@ function yahooShingenn() {
 
             let report;
             if (isFinal === "true") {
-                report = `第${reportNum}報(最終報)`;
+                report = `第${reportNum}報(最終報) イベントID:${reportId}`;
             } else {
-                report = `第${reportNum}報`;
+                report = `第${reportNum}報 イベントID:${reportId}`;
             }
             result_data = [set_time, maxstrongEarthquake, apiUrl, report, regionName, calcIntensity, magnitude, depth, Wave_latitude, Wave_longitude, pRadius, sRadius];
             console.log(result_data)
@@ -216,3 +217,16 @@ function yahooShingenn() {
     }
 }
 
+function Loc_data_reader() {
+    // XMLHttpRequestを使用して同期的にJSONファイルを読み込む
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json', false); // 同期的にリクエストを行う
+    xhr.send();
+    json_data=JSON.parse(xhr.responseText);
+    if (xhr.status === 200) {
+        return json_data; // JSONを解析して返す
+    } else {
+        console.error('Error loading settings:', xhr.status);
+        return null;
+    }
+}
