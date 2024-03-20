@@ -162,9 +162,9 @@ function yahooShingenn() {
         set_time = new Date(timeMachineValue);
         set_time_counter += 1;
         set_time = new Date(set_time.getTime() + set_time_counter * 1000);
-        console.log(set_time,set_time_counter)
+        console.log(set_time, set_time_counter)
     }
-    
+
     const time_set = formatDateTimeForUrl(set_time);
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${time_set}.json`;
     const xhr = new XMLHttpRequest();
@@ -176,7 +176,7 @@ function yahooShingenn() {
         if (yahoo_data.hypoInfo === null) {
             const strongEarthquake = yahoo_data.realTimeData.intensity;
             const maxstrongEarthquake = Math.max(...strongEarthquake.split('').map(char => seismicIntensityConversion(char)));
-            const result_data=[set_time, maxstrongEarthquake, apiUrl, "緊急地震速報は出ていません。", 0, 0, 0, 0, 36.0, 137.9, 0, 0];
+            const result_data = [set_time, maxstrongEarthquake, apiUrl, "緊急地震速報は出ていません。", 0, 0, 0, 0, 36.0, 137.9, 0, 0];
             console.log(result_data)
             return result_data
         } else {
@@ -192,21 +192,21 @@ function yahooShingenn() {
             const Wave_longitude = yahoo_data.psWave.items[0].longitude.replace("E", "");
             let pRadius = parseFloat(yahoo_data.psWave.items[0].pRadius).toFixed(0);
             let sRadius = parseFloat(yahoo_data.psWave.items[0].sRadius).toFixed(0);
-            
+
             if (isNaN(pRadius)) {
                 pRadius = 2000;
             }
             if (isNaN(sRadius)) {
                 sRadius = 2000;
             }
-            
+
             let report;
             if (isFinal === "true") {
                 report = `第${reportNum}報(最終報)`;
             } else {
                 report = `第${reportNum}報`;
             }
-            result_data=[set_time, maxstrongEarthquake, apiUrl, report, regionName, calcIntensity, magnitude, depth, Wave_latitude, Wave_longitude, pRadius, sRadius];
+            result_data = [set_time, maxstrongEarthquake, apiUrl, report, regionName, calcIntensity, magnitude, depth, Wave_latitude, Wave_longitude, pRadius, sRadius];
             console.log(result_data)
             return result_data
         }
@@ -215,3 +215,4 @@ function yahooShingenn() {
         return null; // エラー時はnullを返すなど、適切なエラー処理を行う
     }
 }
+

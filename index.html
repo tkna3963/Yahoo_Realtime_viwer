@@ -9,19 +9,20 @@
     <link rel="stylesheet" href="stylesheet.css" />
     <style>
         body {
-            background-color:#476ed1;
+            background-color: #476ed1;
         }
     </style>
 </head>
 
 <body>
-    <h1>Yahooリアルタイム地震情報掲示板 <a href="https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/" target="_blank">公式様:Yahooリアルタイム震度</a></h1>
+    <h1>Yahooリアルタイム地震情報掲示板 <a href="https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/"
+            target="_blank">公式様:Yahooリアルタイム震度</a></h1>
     <label id="text_box" for='time_machine'>タイムマシーン設定時刻:</label>
     <input type='text' id='time_machine' name='time_machine'>
     <div id="Main"></div>
     <div id="map" style="height:700px;"></div>
     <audio id="sound" src="Required_files\Continue1.wav"></audio>
-    <div id="earthquake_info"></div> 
+    <div id="earthquake_info"></div>
     <script src="main_script.js"></script>
     <script>
         var previousLocation = null;
@@ -34,19 +35,19 @@
             const yahoo_data = yahooShingenn();
 
             var earthquakeInfo = document.getElementById("earthquake_info");
-            
+
             let sound = document.getElementById("sound")
             if (yahoo_data[3] === "緊急地震速報は出ていません。") {
                 earthquakeInfo.style.display = "none";
             } else {
                 earthquakeInfo.style.display = "block";
-                sound.play(); 
+                sound.play();
             }
 
             var yahoo_data_Element = document.getElementById("Main");
             yahoo_data_Element.innerHTML = "";
             var dataHTML = "";
-            dataHTML += "<p id='text_box'><strong>情報時刻:</strong> " + formatTimeDate(yahoo_data[0])+ "</p>";
+            dataHTML += "<p id='text_box'><strong>情報時刻:</strong> " + formatTimeDate(yahoo_data[0]) + "</p>";
             dataHTML += "<p id='text_box'><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "' target='_blank'>" + yahoo_data[2] + "</a></p>";
             dataHTML += "<p id='text_box'><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
             dataHTML += "<p id='text_box'><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
@@ -54,7 +55,7 @@
             dataHTML += "<p id='text_box'><strong>推定震央地:</strong> " + yahoo_data[4] + "(" + yahoo_data[8] + ", " + yahoo_data[9] + ")" + "</p>";
             dataHTML += "</div>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
-            dataHTML += "<p id='text_box'><strong>推定最大震度:</strong> " + yahoo_data[5] + "(" + scaleLevalConversion(yahoo_data[5]) + ")" + "</p>";
+            dataHTML += "<p id='text_box' style='color:" + scaleColorConversion(yahoo_data[5]) + "'><strong>推定最大震度:</strong> " + yahoo_data[5] + "(" + scaleLevalConversion(yahoo_data[5]) + ")" + "</p>";
             dataHTML += "</div>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
             dataHTML += "<p id='text_box'><strong>推定規模(マグニチュード):</strong> " + yahoo_data[6] + "</p>";
@@ -76,8 +77,8 @@
                     L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
                         attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
                     }).addTo(map);
-                    var customIcon = L.icon({iconUrl: 'Required_files/epicenter.png',iconSize: [30, 30]});
-                    marker = L.marker([yahoo_data[8], yahoo_data[9]], {icon: customIcon}).addTo(map);
+                    var customIcon = L.icon({ iconUrl: 'Required_files/epicenter.png', iconSize: [30, 30] });
+                    marker = L.marker([yahoo_data[8], yahoo_data[9]], { icon: customIcon }).addTo(map);
                     P_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
                         color: 'blue',
                         fillColor: scaleColorConversion(yahoo_data[5]),
