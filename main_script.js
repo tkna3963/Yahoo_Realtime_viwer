@@ -203,9 +203,9 @@ function yahooShingenn() {
 
             let report;
             if (isFinal === "true") {
-                report = `第${reportNum}報(最終報) イベントID:${reportId}`;
+                report = `${reportId} 第${reportNum}報(最終報)`;
             } else {
-                report = `第${reportNum}報 イベントID:${reportId}`;
+                report = `${reportId} 第${reportNum}報`;
             }
             result_data = [set_time, maxstrongEarthquake, apiUrl, report, regionName, calcIntensity, magnitude, depth, Wave_latitude, Wave_longitude, pRadius, sRadius];
             console.log(result_data)
