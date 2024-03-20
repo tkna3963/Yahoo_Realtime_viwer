@@ -118,6 +118,35 @@ function scaleLevalImgConversion(scaleData) {
     }
 }
 
+function seismicIntensityscaleColorConversion(scaleData) {
+    try {
+        console.log(scaleData)
+        const colorMap = {
+            null: "#0d0d66",
+            "-1": "#9b9b1b",
+            "0": "#0fb02b",
+            "0.5": "#f4e200",
+            "1": "#fbc300",
+            "1.5": "#ffaf00",
+            "2": "#f90",
+            "2.5": "#ff7e00",
+            "3": "#ff6200",
+            "3.5": "#fc4c02",
+            "4": "#f53605",
+            "4.5": "#f11520",
+            "5": "#ed0047",
+            "5.5": "#e30071",
+            "6": "#dc009c",
+            "6.5": "#c900ba",
+            "7": "#b600d7"
+        };
+        var result_data=colorMap[String(scaleData)] || "#0d0d66";
+        return result_data
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 function calculateZoomLevel(distance) {
     // 距離に基づいて適切なズーム レベルを計算する
     if (distance <= 100) return 10;   // 距離が 100km 未満の場合、ズーム レベル 10 を返す
@@ -229,4 +258,38 @@ function Loc_data_reader() {
         console.error('Error loading settings:', xhr.status);
         return null;
     }
+}
+
+function initAndUpateChart(newData) {
+    var ctx = document.getElementById('realtime-chart').getContext('2d');
+    if (!window.chart) {
+        window.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'リアルタイム強震最大震度',
+                    data: [],
+                    borderColor: seismicIntensityscaleColorConversion(newData["y"]),
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: 7
+                    }
+                }
+            }
+        });
+    }
+
+    // 最新データを追加
+    window.chart.data.labels.push(newData.x.toLocaleTimeString());
+    window.chart.data.datasets[0].data.push(newData.y);
+    
+    // チャートを更新
+    window.chart.update();
 }
