@@ -70,7 +70,7 @@
             dataHTML += "<img src=" + scaleLevalImgConversion(yahoo_data[5]) + ">" + "</img>";
             dataHTML += "</div>";
             yahoo_data_Element.innerHTML = dataHTML;
-            const loc_data = Loc_data_reader()["items"]
+            //const loc_data = Loc_data_reader()["items"]
             if (!(yahoo_data[3] === "緊急地震速報は出ていません。")) {
                 if (!map) {
                     map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], calculateZoomLevel(yahoo_data[10]));
