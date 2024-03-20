@@ -17,7 +17,8 @@
 
 <body>
     <h1>Yahooリアルタイム地震情報掲示板 <a href="https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/"
-            target="_blank">公式様:Yahooリアルタイム震度</a></h1>
+            target="_blank">公式様:Yahooリアルタイム震度</a> <a href="https://github.com/tkna3963/Yahoo_Realtime_viwer"
+            target="_blank">このページのリポジトリ</a></h1>
     <label id="text_box" for='time_machine'>タイムマシーン設定時刻:</label>
     <input type='text' id='time_machine' name='time_machine'>
     <div id="Main"></div>
@@ -73,7 +74,7 @@
             dataHTML += "</div>";
             yahoo_data_Element.innerHTML = dataHTML;
             //const loc_data = Loc_data_reader()["items"]
-            
+
             initAndUpateChart({ x: yahoo_data[0], y: yahoo_data[1] });
 
             if (!map) {
