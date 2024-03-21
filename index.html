@@ -75,8 +75,6 @@
             yahoo_data_Element.innerHTML = dataHTML;
             //const loc_data = Loc_data_reader()["items"]
 
-            initAndUpateChart({ x: yahoo_data[0], y: yahoo_data[1] });
-
             if (!map) {
                 map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], calculateZoomLevel(yahoo_data[10]));
                 L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
@@ -102,6 +100,7 @@
                 P_circle.setLatLng([yahoo_data[8], yahoo_data[9]]).setRadius(yahoo_data[10] * 1000);
                 S_circle.setLatLng([yahoo_data[8], yahoo_data[9]]).setRadius(yahoo_data[11] * 1000);
             }
+            initAndUpateChart({ x: yahoo_data[0], y: yahoo_data[1] });
         }
         updateData();
         setInterval(updateData, 1000);
