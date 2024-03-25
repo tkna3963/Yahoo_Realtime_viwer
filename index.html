@@ -52,7 +52,7 @@
             var dataHTML = "";
             dataHTML += "<p id='text_box'><strong>情報時刻:</strong> " + formatTimeDate(yahoo_data[0]) + "</p>";
             dataHTML += "<p id='text_box'><strong>取得元URL:</strong> <a href='" + yahoo_data[2] + "' target='_blank'>" + yahoo_data[2] + "</a></p>";
-            dataHTML += "<p id='text_box'><strong>強震最大震度:</strong> " + yahoo_data[1] + "</p>";
+            dataHTML += "<p id='text_box'><strong>強震最大震度:</strong> " + yahoo_data[1] + "(" + yahoo_data[8] + ", " + yahoo_data[9] + ")" + "</p>";
             dataHTML += "<p id='text_box'><strong>緊急地震速報:</strong> " + yahoo_data[3] + "</p>";
             dataHTML += "<div id='earthquake_info' style='display: " + (yahoo_data[3] === "緊急地震速報は出ていません。" ? "none" : "block") + ";'>";
             dataHTML += "<p id='text_box'><strong>推定震央地:</strong> " + yahoo_data[4] + "(" + yahoo_data[8] + ", " + yahoo_data[9] + ")" + "</p>";
@@ -73,8 +73,6 @@
             dataHTML += "<img src=" + scaleLevalImgConversion(yahoo_data[5]) + ">" + "</img>";
             dataHTML += "</div>";
             yahoo_data_Element.innerHTML = dataHTML;
-            //const loc_data = Loc_data_reader()["items"]
-
             if (!map) {
                 map = L.map('map').setView([yahoo_data[8], yahoo_data[9]], calculateZoomLevel(yahoo_data[10]));
                 L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
@@ -84,15 +82,15 @@
                 marker = L.marker([yahoo_data[8], yahoo_data[9]], { icon: customIcon }).addTo(map);
                 P_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
                     color: 'blue',
-                    fillColor: scaleColorConversion(yahoo_data[5]),
                     fillOpacity: 0.3,
-                    radius: yahoo_data[10] * 1000
+                    radius: yahoo_data[10] * 1000,
+                    fillColor: "#ef8009"
                 }).addTo(map);
                 S_circle = L.circle([yahoo_data[8], yahoo_data[9]], {
                     color: 'red',
-                    fillColor: scaleColorConversion(yahoo_data[5]),
                     fillOpacity: 0.7,
-                    radius: yahoo_data[11] * 1000
+                    radius: yahoo_data[11] * 1000,
+                    fillColor: "#ef8009"
                 }).addTo(map);
             } else {
                 map.setView([yahoo_data[8], yahoo_data[9]], calculateZoomLevel(yahoo_data[10]));

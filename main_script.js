@@ -149,6 +149,39 @@ function formatTimeDate(dateString, timeZone = 'Asia/Tokyo') {
     return formattedDate.replace(/\//g, '年').replace(' ', '日').replace(':', '時').replace(':', '分') + '秒';
 }
 
+function Loc_data_reader() {
+    // XMLHttpRequestを使用して同期的にJSONファイルを読み込む
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json', false); // 同期的にリクエストを行う
+    xhr.send();
+    json_data = JSON.parse(xhr.responseText);
+    if (xhr.status === 200) {
+        return json_data; // JSONを解析して返す
+    } else {
+        console.error('Error loading settings:', xhr.status);
+        return null;
+    }
+}
+
+function findMaxIntensityLocations(loc_list, seismicIntensityList) {
+    if (loc_list.length !== seismicIntensityList.length) return console.error("Error: The lengths of loc_list and seismicIntensityList do not match.");
+
+    let maxIntensity = -Infinity;
+    let maxIntensityLocation = null;
+
+    for (let i = 0; i < loc_list.length; i++) {
+        let intensity = seismicIntensityList[i];
+        let loc = loc_list[i];
+
+        if (intensity > maxIntensity) {
+            maxIntensity = intensity;
+            maxIntensityLocation = loc;
+        }
+    }
+
+    return maxIntensityLocation;
+}
+
 let set_time_counter = 0;
 function yahooShingenn() {
     var timeMachineInput = document.getElementById("time_machine");
@@ -176,11 +209,14 @@ function yahooShingenn() {
         if (yahoo_data.hypoInfo === null) {
             const strongEarthquake = yahoo_data.realTimeData.intensity;
             const maxstrongEarthquake = Math.max(...strongEarthquake.split('').map(char => seismicIntensityConversion(char)));
-            const result_data = [set_time, maxstrongEarthquake, apiUrl, "緊急地震速報は出ていません。", 0, 0, 0, 0, 36.0, 137.9, 0, 0];
+            const loc_list = Loc_data_reader()["items"]
+            const seismicIntensityList = strongEarthquake.split('').map(char => seismicIntensityConversion(char));
+            const find_data = findMaxIntensityLocations(loc_list, seismicIntensityList)
+            const result_data = [set_time, maxstrongEarthquake, apiUrl, "緊急地震速報は出ていません。", 0, 0, 0, 0, find_data[0], find_data[1], 0, 0];
             console.log(result_data)
             return result_data
         } else {
-            const reportId=yahoo_data.hypoInfo.items[0].reportId;
+            const reportId = yahoo_data.hypoInfo.items[0].reportId;
             const reportNum = yahoo_data.hypoInfo.items[0].reportNum;
             const isFinal = yahoo_data.hypoInfo.items[0].isFinal;
             const strongEarthquake = yahoo_data.realTimeData.intensity;
@@ -217,20 +253,6 @@ function yahooShingenn() {
     }
 }
 
-function Loc_data_reader() {
-    // XMLHttpRequestを使用して同期的にJSONファイルを読み込む
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json', false); // 同期的にリクエストを行う
-    xhr.send();
-    json_data=JSON.parse(xhr.responseText);
-    if (xhr.status === 200) {
-        return json_data; // JSONを解析して返す
-    } else {
-        console.error('Error loading settings:', xhr.status);
-        return null;
-    }
-}
-
 function initAndUpateChart(newData) {
     var ctx = document.getElementById('realtime-chart').getContext('2d');
     if (!window.chart) {
@@ -241,7 +263,7 @@ function initAndUpateChart(newData) {
                 datasets: [{
                     label: 'リアルタイム強震最大震度',
                     data: [],
-                    borderColor:"#f90",
+                    borderColor: "#f90",
                     borderWidth: 2,
                     pointRadius: 0
                 }]
@@ -260,7 +282,7 @@ function initAndUpateChart(newData) {
     // 最新データを追加
     window.chart.data.labels.push(newData.x.toLocaleTimeString());
     window.chart.data.datasets[0].data.push(newData.y);
-    
+
     // チャートを更新
     window.chart.update();
 }
