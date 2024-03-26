@@ -150,16 +150,28 @@ function formatTimeDate(dateString, timeZone = 'Asia/Tokyo') {
 }
 
 function Loc_data_reader() {
-    // XMLHttpRequestを使用して同期的にJSONファイルを読み込む
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json', false); // 同期的にリクエストを行う
-    xhr.send();
-    json_data = JSON.parse(xhr.responseText);
-    if (xhr.status === 200) {
-        return json_data; // JSONを解析して返す
+    // ローカルストレージからデータを取得
+    const savedData = localStorage.getItem('siteListData');
+    // ローカルストレージに保存されたデータがあればそれを返す
+    if (savedData) {
+        return JSON.parse(savedData);
     } else {
-        console.error('Error loading settings:', xhr.status);
-        return null;
+        // XMLHttpRequestを使用して同期的にJSONファイルを読み込む
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json', false); // 同期的にリクエストを行う
+        xhr.send();
+        // レスポンスが成功（ステータスコード200）の場合のみ処理
+        if (xhr.status === 200) {
+            const json_data = JSON.parse(xhr.responseText);
+            
+            // ローカルストレージにデータを保存
+            localStorage.setItem('siteListData', JSON.stringify(json_data));
+            
+            return json_data; // JSONを解析して返す
+        } else {
+            console.error('Error loading settings:', xhr.status);
+            return null;
+        }
     }
 }
 
@@ -195,7 +207,6 @@ function yahooShingenn() {
         set_time = new Date(timeMachineValue);
         set_time_counter += 1;
         set_time = new Date(set_time.getTime() + set_time_counter * 1000);
-        console.log(set_time, set_time_counter)
     }
 
     const time_set = formatDateTimeForUrl(set_time);
