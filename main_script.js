@@ -201,6 +201,7 @@ function yahooShingenn() {
 
     var set_time;
     if (timeMachineValue === "") {
+        set_time_counter=0;
         currentDateTime = new Date();
         set_time = new Date(currentDateTime.getTime() - 3 * 1000);
     } else {
