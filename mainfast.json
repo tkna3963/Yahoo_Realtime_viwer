@@ -2,7 +2,7 @@
     "name": "Yahooリアルタイム地震情報掲示板",
     "short_name": "地震情報",
     "description": "Yahooから提供されるリアルタイム地震情報。",
-    "start_url": "/",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#476ed1",
     "theme_color": "#476ed1"
