@@ -1,9 +1,10 @@
 const CACHE_NAME = 'earthquake-info-cache-v1';
 const urlsToCache = [
-  '/',
+  './',
   '/index.html',
-  '/main_script.js',
-  '/stylesheet.css',
+  './main_script.js',
+  './stylesheet.css',
+  './Required_files'
 ];
 
 self.addEventListener('install', function(event) {
