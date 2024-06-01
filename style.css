@@ -1,0 +1,49 @@
+#title {
+    color: #6cb4e4;
+    text-align: center;
+    padding: 0.25em;
+    border-top: solid 2px #6cb4e4;
+    border-bottom: solid 2px #6cb4e4;
+    background: -webkit-repeating-linear-gradient(-45deg, #f0f8ff, #f0f8ff 3px, #e9f4ff 3px, #e9f4ff 7px);
+    background: repeating-linear-gradient(-45deg, #f0f8ff, #f0f8ff 3px, #e9f4ff 3px, #e9f4ff 7px);
+}
+
+#main_text_area {
+    width: 100%;         /* 幅を100%に設定 */
+    height: 50dvh;       /* 高さを200pxに設定 */
+    font-family: Arial, sans-serif;  /* フォントファミリーを設定 */
+    font-size: 16px;     /* フォントサイズを設定 */
+    color: #333;         /* テキストの色を設定 */
+    resize: none;        /* サイズ変更を禁止 */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);  /* ボックスシャドウを設定 */
+    outline: none;       /* フォーカス時のアウトラインを削除 */
+}
+
+#main_text_area:focus {
+    border-color: #66afe9;  /* フォーカス時の境界線の色を変更 */
+    box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);  /* フォーカス時のボックスシャドウを設定 */
+}
+
+#map {
+    width: 100%;
+    height: 70dvb; /* 適切な高さを指定 */
+}
+
+.image-container {
+    display: inline-block; /* 追加 */
+    margin-right: 10px;
+}
+
+.image-container img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.image-container {
+    background-image: url('https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/CommonImg/base_map_w.gif');
+    background-size: cover; /* 画像をコンテナに合わせて調整 */
+    background-repeat: no-repeat; /* 画像の繰り返しを防ぐ */
+    background-position: center; /* 画像を中央に配置 */
+    cursor: pointer; /* マウスカーソルをポインターに変更 */
+}
