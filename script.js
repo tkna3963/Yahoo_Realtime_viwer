@@ -242,7 +242,19 @@ function calDistance(A, B) {
 
 function yahoo_Realtime_data() {
     now_time_date = now_time()
-    set_time = new Date(now_time_date.getTime() - 3 * 1000);
+    var timeMachineInput = document.getElementById("time_machine");
+    var timeMachineValue = timeMachineInput.value;
+
+    var set_time;
+    if (timeMachineValue === "") {
+        set_time_counter = 0;
+        currentDateTime = new Date();
+        set_time = new Date(now_time_date.getTime() - 3 * 1000);
+    } else {
+        set_time = new Date(timeMachineValue);
+        set_time_counter += 1;
+        set_time = new Date(set_time.getTime() + set_time_counter * 1000);
+    }
     url_time_date = Yahoo_Time_date_fromat(set_time)
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${url_time_date}.json`;
     //const apiUrl = "https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/20240417/20240417231516.json";
@@ -363,15 +375,37 @@ function Information_distribution_board() {
     return result_data
 }
 
-function Message_Conversion(Telegram_List_data){
- const text=`
- 情報取得時刻:${Telegram_List_data["Earthquake_info_list"]["get_date"]}
- リアルタイム最大強震震度:${Telegram_List_data["Earthquake_info_list"]["MAXseismicIntensity"]}
- 現在の震度0以上の観測点数:${Telegram_List_data["Earthquake_info_list"]["Earthquake_intensity_greater_than_zero_Count"]} (観測点全体の約${((Telegram_List_data["Earthquake_info_list"]["Earthquake_intensity_greater_than_zero_Count"]/Telegram_List_data["Earthquake_info_list"]["seismicIntensityListCount"])*100).toFixed(0)}% ${Telegram_List_data["Earthquake_info_list"]["Earthquake_intensity_greater_than_zero_Count"]}/${Telegram_List_data["Earthquake_info_list"]["seismicIntensityListCount"]})
- 現在地付近の観測所の震度:${Telegram_List_data["Earthquake_info_list"]["nearest_earthquake"]}(${Telegram_List_data["Earthquake_info_list"]["nearest_seismograph"]}) 
+function Message_Conversion(Telegram_List_data) {
+    let text = '';
+    const info = Telegram_List_data["Earthquake_info_list"];
+    
+    if (info["situation"] === "EEW_hasn't_been_issued") {
+        text = `
+    情報取得時刻:${info["get_date"]}
+    リアルタイム最大強震震度:${info["MAXseismicIntensity"]}(${info["MaxIntensityLocation"]})
+    現在の震度0以上の観測点数:${info["Earthquake_intensity_greater_than_zero_Count"]} (観測点全体の約${((info["Earthquake_intensity_greater_than_zero_Count"] / info["seismicIntensityListCount"]) * 100).toFixed(0)}% ${info["Earthquake_intensity_greater_than_zero_Count"]}/${info["seismicIntensityListCount"]})
+    現在地付近の観測所の震度:${info["nearest_earthquake"]}(${info["nearest_seismograph"]})
+ `;
+    } else {
+        text = `
+    情報取得時刻:${info["get_date"]}
+    リアルタイム最大強震震度:${info["MAXseismicIntensity"]}(${info["MaxIntensityLocation"]})                                                                                                                                                                                                                                                                  
+    現在の震度0以上の観測点数:${info["Earthquake_intensity_greater_than_zero_Count"]} (観測点全体の約${((info["Earthquake_intensity_greater_than_zero_Count"] / info["seismicIntensityListCount"]) * 100).toFixed(0)}% ${info["Earthquake_intensity_greater_than_zero_Count"]}/${info["seismicIntensityListCount"]})
+    現在地付近の観測所の震度:${info["nearest_earthquake"]}(${info["nearest_seismograph"]})
+    
+    緊急地震速報要素
+    EventID:${info["reportId"]}
+    通番:${info["reportNum"]}${info["isFinal"] === "true" ? "(最終報)" : ""}
+    地震発生時刻:${info["originTime"]}(${info["set_timeDoriginTime"]})
+    情報更新時刻:${info["reportTime"]}
+    評価震央地点:${info["regionName"]}
+    推定震度:${info["calcIntensity"]}
+    推定規模（マグニチュード):${info["magnitude"]}
+    推定深さ:${info["depth"]}km
 
- `
- return text
+    `;
+    }
+    return text;
 }
 
 function openImage(src) {
@@ -416,6 +450,15 @@ function updateImages() {
 }
 
 document.getElementById('imageSlider').addEventListener('input', updateImages);
+
+function MAP(datas){
+    var map = L.map('map').setView([datas["Device_info_list"]["Current_location_latitude"],datas["Device_info_list"]["Current_location_longitude"]], 8);
+    L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
+        attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
+    }).addTo(map);
+    var customIcon = L.icon({ iconUrl: 'Required_files/epicenter.png', iconSize: [30, 30] });
+    marker = L.marker([datas["Device_info_list"]["Current_location_latitude"],datas["Device_info_list"]["Current_location_longitude"]], { icon: customIcon }).addTo(map);
+}
 
 Update();
 setInterval(Update, 1000);

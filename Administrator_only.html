@@ -29,6 +29,8 @@
     <h1 id="title">RealTime_Yahoo_Earthquake_Info BY TKYT612314</h1>
     <textarea id="main_text_area"></textarea>
     <div id="map" style="height: 400px;"></div>
+    <label id="text_box" for='time_machine'>タイムマシーン設定時刻:</label>
+    <input type='text' id='time_machine' name='time_machine'>
     <script src="script.js"></script>
     <script>
         let main_datas;
@@ -36,15 +38,11 @@
         function main() {
             main_datas = Information_distribution_board();
             document.getElementById('main_text_area').innerHTML = Message_Conversion(main_datas);
+            MAP(main_datas)
         }
-
+        
         main();
         setInterval(main, 1000);
-
-        var map = L.map('map').setView([0, 0], 8);
-        L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
-            attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
-        }).addTo(map);
 
         function openSubWindow() {
             window.open('Monitor.html', 'Kyoushin_Moniter', 'width=360px,height=400px');
