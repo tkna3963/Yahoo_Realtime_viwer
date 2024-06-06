@@ -361,15 +361,13 @@ function Information_distribution_board() {
     }
     Earthquake_info_list.nearest_seismograph = Yahoo_locate_list[findMinAndIndex(yahoo_calDistance_list)["index"]];
     Earthquake_info_list.nearest_earthquake = Earthquake_info_list["seismicIntensityList"][findMinAndIndex(yahoo_calDistance_list)["index"]];
-    if (Earthquake_info_list["situation"] === "EEW_hasn") {
-        var surfaceGroundInformationProvision_data = surfaceGroundInformationProvisionAPI(Device_info_list["Current_location_latitude"], Device_info_list["Current_location_longitude"]);
-        var necessities = [Earthquake_info_list["magnitude"], Earthquake_info_list["depth"], [Earthquake_info_list["Wave_latitude"], Earthquake_info_list["Wave_longitude"]], [Device_info_list["Current_location_latitude"], Device_info_list["Current_location_longitude"]], surfaceGroundInformationProvision_data.features[0].properties.ARV];
-        var Distance_attenuation_type_data_list = distanceAttenuationType(necessities);
-        Earthquake_info_list.distanceAttenuationType_calcIntensity = Distance_attenuation_type_data_list[0]
-        Earthquake_info_list.epicenterDistance = Distance_attenuation_type_data_list[1]
-        Earthquake_info_list.PGV = Distance_attenuation_type_data_list[2]
-        Earthquake_info_list.ARV = Distance_attenuation_type_data_list[3]
-    }
+    var surfaceGroundInformationProvision_data = surfaceGroundInformationProvisionAPI(Device_info_list["Current_location_latitude"], Device_info_list["Current_location_longitude"]);
+    var necessities = [Earthquake_info_list["magnitude"], Earthquake_info_list["depth"], [Earthquake_info_list["Wave_latitude"], Earthquake_info_list["Wave_longitude"]], [Device_info_list["Current_location_latitude"], Device_info_list["Current_location_longitude"]], surfaceGroundInformationProvision_data.features[0].properties.ARV];
+    var Distance_attenuation_type_data_list = distanceAttenuationType(necessities);
+    Earthquake_info_list.distanceAttenuationType_calcIntensity = Distance_attenuation_type_data_list[0]
+    Earthquake_info_list.epicenterDistance = Distance_attenuation_type_data_list[1]
+    Earthquake_info_list.PGV = Distance_attenuation_type_data_list[2]
+    Earthquake_info_list.ARV = Distance_attenuation_type_data_list[3]
     const result_data = { "Device_info_list": Device_info_list, "Earthquake_info_list": Earthquake_info_list };
     List_checker_for_debugging(result_data["Earthquake_info_list"])
     return result_data
@@ -378,7 +376,7 @@ function Information_distribution_board() {
 function Message_Conversion(Telegram_List_data) {
     let text = '';
     const info = Telegram_List_data["Earthquake_info_list"];
-    
+
     if (info["situation"] === "EEW_hasn't_been_issued") {
         text = `
     情報取得時刻:${info["get_date"]}
@@ -398,10 +396,11 @@ function Message_Conversion(Telegram_List_data) {
     通番:${info["reportNum"]}${info["isFinal"] === "true" ? "(最終報)" : ""}
     地震発生時刻:${info["originTime"]}(${info["set_timeDoriginTime"]})
     情報更新時刻:${info["reportTime"]}
-    評価震央地点:${info["regionName"]}
-    推定震度:${info["calcIntensity"]}
+    評価震央地点:${info["regionName"]} 現在地から約${info["epicenterDistance"]}km
+    推定震度:${info["calcIntensity"]} 現在地予想震度:約${info["distanceAttenuationType_calcIntensity"].toFixed(0)}(${info["distanceAttenuationType_calcIntensity"]})
     推定規模（マグニチュード):${info["magnitude"]}
     推定深さ:${info["depth"]}km
+    予想初期微動継続時間:約${((info["epicenterDistance"]/8).toFixed(0))}秒
 
     `;
     }
@@ -451,13 +450,11 @@ function updateImages() {
 
 document.getElementById('imageSlider').addEventListener('input', updateImages);
 
-function MAP(datas){
-    var map = L.map('map').setView([datas["Device_info_list"]["Current_location_latitude"],datas["Device_info_list"]["Current_location_longitude"]], 8);
+function MAP(datas) {
+    var map = L.map('map').setView([datas["Device_info_list"]["Current_location_latitude"], datas["Device_info_list"]["Current_location_longitude"]], 8);
     L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
         attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
     }).addTo(map);
-    var customIcon = L.icon({ iconUrl: 'Required_files/epicenter.png', iconSize: [30, 30] });
-    marker = L.marker([datas["Device_info_list"]["Current_location_latitude"],datas["Device_info_list"]["Current_location_longitude"]], { icon: customIcon }).addTo(map);
 }
 
 Update();
