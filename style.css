@@ -41,6 +41,8 @@
 }
 
 .image-container {
+    width: 430PX;
+    height: 630px;;
     background-image: url('https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/CommonImg/base_map_w.gif');
     background-size: cover; /* 画像をコンテナに合わせて調整 */
     background-repeat: no-repeat; /* 画像の繰り返しを防ぐ */
