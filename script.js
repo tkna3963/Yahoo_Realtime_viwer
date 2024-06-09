@@ -373,11 +373,14 @@ function Information_distribution_board() {
     return result_data
 }
 
+let EEW_music = document.getElementById("EEW_music")
+EEW_music.volume = 0.5;
 function Message_Conversion(Telegram_List_data) {
     let text = '';
     const info = Telegram_List_data["Earthquake_info_list"];
 
     if (info["situation"] === "EEW_hasn't_been_issued") {
+        EEW_music.pause();
         text = `
     情報取得時刻:${info["get_date"]}
     リアルタイム最大強震震度:${info["MAXseismicIntensity"]}(${info["MaxIntensityLocation"]})
@@ -385,6 +388,7 @@ function Message_Conversion(Telegram_List_data) {
     現在地付近の観測所の震度:${info["nearest_earthquake"]}(${info["nearest_seismograph"]})
  `;
     } else {
+        EEW_music.play();
         text = `
     情報取得時刻:${info["get_date"]}
     リアルタイム最大強震震度:${info["MAXseismicIntensity"]}(${info["MaxIntensityLocation"]})                                                                                                                                                                                                                                                                  
@@ -400,8 +404,7 @@ function Message_Conversion(Telegram_List_data) {
     推定震度:${info["calcIntensity"]} 現在地予想震度:約${info["distanceAttenuationType_calcIntensity"].toFixed(0)}(${info["distanceAttenuationType_calcIntensity"]})
     推定規模（マグニチュード):${info["magnitude"]}
     推定深さ:${info["depth"]}km
-    予想初期微動継続時間:約${((info["epicenterDistance"]/8).toFixed(0))}秒
-
+    予想初期微動継続時間:約${((info["epicenterDistance"] / 8).toFixed(0))}秒
     `;
     }
     return text;
@@ -418,11 +421,11 @@ function Kyoushin_moniter_url() {
     now_time_date = now_time()
     set_time = new Date(now_time_date.getTime() - 3 * 1000);
     url_time_date = Yahoo_Time_date_fromat(set_time)
-    const Kyoushin_S_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/jma_b/${url_time_date}.jma_b.gif`;
+    const Kyoushin_B_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/jma_b/${url_time_date}.jma_b.gif`;
     const Tyoushuki_Url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`;
     const PGA_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`
     return {
-        "Kyoushin_S_Url": Kyoushin_S_Url,
+        "Kyoushin_B_Url": Kyoushin_B_Url,
         "Tyoushuki_Url": Tyoushuki_Url,
         "PGA_Url": PGA_Url
     };
@@ -430,7 +433,7 @@ function Kyoushin_moniter_url() {
 
 function Update() {
     const urls = Kyoushin_moniter_url();
-    document.getElementById('imgKyoushinS').src = urls.Kyoushin_S_Url;
+    document.getElementById('imgKyoushinB').src = urls.Kyoushin_B_Url;
     document.getElementById('imgTyoushuki').src = urls.Tyoushuki_Url;
     document.getElementById('imgPGA').src = urls.PGA_Url;
     console.log(urls);
