@@ -410,49 +410,6 @@ function Message_Conversion(Telegram_List_data) {
     return text;
 }
 
-function openImage(src) {
-    window.open(src, "_blank", "width=600, height=400");
-}
-function openSubWindow() {
-    window.open("Monitor.html", "_blank", "width=342px, height=440px");
-}
-
-function Kyoushin_moniter_url() {
-    now_time_date = now_time()
-    set_time = new Date(now_time_date.getTime() - 3 * 1000);
-    url_time_date = Yahoo_Time_date_fromat(set_time)
-    const Kyoushin_B_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/jma_b/${url_time_date}.jma_b.gif`;
-    const Tyoushuki_Url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`;
-    const PGA_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`
-    return {
-        "Kyoushin_B_Url": Kyoushin_B_Url,
-        "Tyoushuki_Url": Tyoushuki_Url,
-        "PGA_Url": PGA_Url
-    };
-}
-
-function Update() {
-    const urls = Kyoushin_moniter_url();
-    document.getElementById('imgKyoushinB').src = urls.Kyoushin_B_Url;
-    document.getElementById('imgTyoushuki').src = urls.Tyoushuki_Url;
-    document.getElementById('imgPGA').src = urls.PGA_Url;
-    console.log(urls);
-}
-
-function updateImages() {
-    const sliderValue = document.getElementById('imageSlider').value;
-    const images = document.querySelectorAll('.image-container');
-    images.forEach((image, index) => {
-        if (index < sliderValue) {
-            image.style.display = 'block';
-        } else {
-            image.style.display = 'none';
-        }
-    });
-}
-
-document.getElementById('imageSlider').addEventListener('input', updateImages);
-
 function MAP(datas) {
     var map = L.map('map').setView([datas["Device_info_list"]["Current_location_latitude"], datas["Device_info_list"]["Current_location_longitude"]], 8);
     L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
