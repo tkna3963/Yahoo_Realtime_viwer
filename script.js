@@ -11,37 +11,37 @@ function objectToText(obj) {
     return text.slice(0, -2);
 }
 
-function calculateTimeDifference(start_time_str, end_time_str,mode) {
+function calculateTimeDifference(start_time_str, end_time_str, mode) {
     var startTime = new Date(start_time_str);
     var endTime = new Date(end_time_str);
     var timeDifference = endTime - startTime;
     var seconds = Math.floor(timeDifference / 1000);
-    if(mode==="seconds"){
-     return seconds
-    }else{
-    var years = Math.floor(seconds / (3600 * 24 * 365.25));
-    var months = Math.floor((seconds % (3600 * 24 * 365.25)) / (3600 * 24 * 30.4375));
-    seconds %= (3600 * 24 * 30.4375);
-    var days = Math.floor(seconds / (3600 * 24));
-    seconds %= (3600 * 24);
-    var hours = Math.floor(seconds / 3600);
-    seconds %= 3600;
-    var minutes = Math.floor(seconds / 60);
-    seconds %= 60;
-    if (years > 0) {
-        return `${years}年${months}か月${days}日と${hours}時間${minutes}分${seconds}秒前`;
-    } else if (months > 0) {
-        return `${months}か月${days}日と${hours}時間${minutes}分${seconds}秒前`;
-    } else if (days > 0) {
-        return `${days}日と${hours}時間${minutes}分${seconds}秒前`;
-    } else if (hours > 0) {
-        return `${hours}時間${minutes}分${seconds}秒前`;
-    } else if (minutes > 0) {
-        return `${minutes}分${seconds}秒前`;
+    if (mode === "seconds") {
+        return seconds
     } else {
-        return `${seconds}秒前`;
+        var years = Math.floor(seconds / (3600 * 24 * 365.25));
+        var months = Math.floor((seconds % (3600 * 24 * 365.25)) / (3600 * 24 * 30.4375));
+        seconds %= (3600 * 24 * 30.4375);
+        var days = Math.floor(seconds / (3600 * 24));
+        seconds %= (3600 * 24);
+        var hours = Math.floor(seconds / 3600);
+        seconds %= 3600;
+        var minutes = Math.floor(seconds / 60);
+        seconds %= 60;
+        if (years > 0) {
+            return `${years}年${months}か月${days}日と${hours}時間${minutes}分${seconds}秒前`;
+        } else if (months > 0) {
+            return `${months}か月${days}日と${hours}時間${minutes}分${seconds}秒前`;
+        } else if (days > 0) {
+            return `${days}日と${hours}時間${minutes}分${seconds}秒前`;
+        } else if (hours > 0) {
+            return `${hours}時間${minutes}分${seconds}秒前`;
+        } else if (minutes > 0) {
+            return `${minutes}分${seconds}秒前`;
+        } else {
+            return `${seconds}秒前`;
+        }
     }
-}
 }
 
 function Print_checker_for_debugging(data, name) {
@@ -277,8 +277,8 @@ function yahoo_Realtime_data() {
         const reportNum = Yahoo_json_data.hypoInfo.items[0].reportNum;
         const reportTime = formatYahooTimeDate(Yahoo_json_data.hypoInfo.items[0].reportTime);
         const originTime = formatYahooTimeDate(Yahoo_json_data.hypoInfo.items[0].originTime);
-        const set_timeDoriginTime = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time,"nomal");
-        const set_timeDoriginTimeseconds = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time,"seconds");
+        const set_timeDoriginTime = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time, "nomal");
+        const set_timeDoriginTimeseconds = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time, "seconds");
         const regionName = Yahoo_json_data.hypoInfo.items[0].regionName;
         const calcIntensity = Yahoo_json_data.hypoInfo.items[0].calcintensity.replace("0", "");
         const magnitude = Yahoo_json_data.hypoInfo.items[0].magnitude;
@@ -290,30 +290,32 @@ function yahoo_Realtime_data() {
         const Wave_longitude = Yahoo_json_data.psWave.items[0].longitude.replace("E", "");
         let pRadius = parseFloat(Yahoo_json_data.psWave.items[0].pRadius).toFixed(0);
         let sRadius = parseFloat(Yahoo_json_data.psWave.items[0].sRadius).toFixed(0);
-        yahoo_result_data_list = { "situation": "EEW_has_been_issued", 
-            "get_date": format_get_date, 
-            "strongEarthquake": strongEarthquake, 
-            "reportId": reportId, 
-            "reportNum": reportNum, 
-            "reportTime": reportTime, 
-            "originTime": originTime, 
+        yahoo_result_data_list = {
+            "situation": "EEW_has_been_issued",
+            "get_date": format_get_date,
+            "strongEarthquake": strongEarthquake,
+            "reportId": reportId,
+            "reportNum": reportNum,
+            "reportTime": reportTime,
+            "originTime": originTime,
             "set_timeDoriginTime": set_timeDoriginTime,
-            "set_timeDoriginTimeseconds":set_timeDoriginTimeseconds,
-            "calcIntensity": calcIntensity, 
-            "regionName": regionName, 
-            "magnitude": magnitude, 
-            "depth": depth, 
-            "isFinal": isFinal, 
-            "isTraining": isTraining, 
-            "isCancel": isCancel, 
-            "Wave_latitude": Wave_latitude, 
-            "Wave_longitude": Wave_longitude, 
-            "pRadius": pRadius, 
-            "sRadius": sRadius, 
-            "status": Request_status, 
-            "url_time_date": url_time_date, 
-            "API_URL": apiUrl, 
-            "Telegram": Yahoo_json_data };
+            "set_timeDoriginTimeseconds": set_timeDoriginTimeseconds,
+            "calcIntensity": calcIntensity,
+            "regionName": regionName,
+            "magnitude": magnitude,
+            "depth": depth,
+            "isFinal": isFinal,
+            "isTraining": isTraining,
+            "isCancel": isCancel,
+            "Wave_latitude": Wave_latitude,
+            "Wave_longitude": Wave_longitude,
+            "pRadius": pRadius,
+            "sRadius": sRadius,
+            "status": Request_status,
+            "url_time_date": url_time_date,
+            "API_URL": apiUrl,
+            "Telegram": Yahoo_json_data
+        };
     }
     return yahoo_result_data_list
 }
@@ -401,7 +403,7 @@ function Information_distribution_board() {
 }
 
 let EEW_music = document.getElementById("EEW_music")
-EEW_music.volume = 0.5;
+EEW_music.volume = 1;
 function Message_Conversion(Telegram_List_data) {
     let text = '';
     const info = Telegram_List_data["Earthquake_info_list"];
@@ -428,22 +430,32 @@ function Message_Conversion(Telegram_List_data) {
     地震発生時刻:${info["originTime"]}(${info["set_timeDoriginTime"]})
     情報更新時刻:${info["reportTime"]}
     評価震央地点:${info["regionName"]} 現在地から約${info["epicenterDistance"]}km
-    推定震度:${info["calcIntensity"]} 現在地予想震度:約${info["distanceAttenuationType_calcIntensity"].toFixed(0)}(${info["distanceAttenuationType_calcIntensity"]})
+    推定最大震度:${info["calcIntensity"]} 現在地予想震度:約${info["distanceAttenuationType_calcIntensity"].toFixed(0)}(${info["distanceAttenuationType_calcIntensity"]})
     推定規模（マグニチュード):${info["magnitude"]}
     推定深さ:${info["depth"]}km
-    推定実体波位置: P波:${info["pRadius"]}km地点(残り到達時間:${Math.round(info["epicenterDistance"]/8)-info["set_timeDoriginTimeseconds"]}秒) S波:${info["sRadius"]}km地点(残り到達時間:${Math.round(info["epicenterDistance"]/4)-info["set_timeDoriginTimeseconds"]}秒)
+    推定実体波位置: P波:${info["pRadius"]}km地点(残り到達時間:${Math.round(info["epicenterDistance"] / 8) - info["set_timeDoriginTimeseconds"]}秒) S波:${info["sRadius"]}km地点(残り到達時間:${Math.round(info["epicenterDistance"] / 4) - info["set_timeDoriginTimeseconds"]}秒)
     予想初期微動継続時間:約${((info["epicenterDistance"] / 8).toFixed(0))}秒
     `;
     }
     return text;
 }
-
 function MAP(datas) {
-    var map = L.map('map').setView([datas["Device_info_list"]["Current_location_latitude"], datas["Device_info_list"]["Current_location_longitude"]], 8);
+    var map = L.map('map').setView([38.15, 137.41], 5);
+
+    // タイルレイヤーを追加
     L.tileLayer('https://api.maptiler.com/maps/jp-mierune-dark/256/{z}/{x}/{y}.png?key=IkxKT1ZrEb6IprnTOsui', {
         attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
     }).addTo(map);
+
+    // デバイスの現在位置の座標を取得
+    var latitude = datas["Device_info_list"]["Current_location_latitude"];
+    var longitude = datas["Device_info_list"]["Current_location_longitude"];
+    console.log("デバイスの現在位置:", latitude, longitude);
+    var device_marker = L.marker([latitude, longitude]).addTo(map);
+    device_marker.bindPopup("デバイスの現在位置").openPopup();
+
 }
+
 
 Update();
 setInterval(Update, 1000);
