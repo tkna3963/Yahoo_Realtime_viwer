@@ -11,11 +11,14 @@ function objectToText(obj) {
     return text.slice(0, -2);
 }
 
-function calculateTimeDifference(start_time_str, end_time_str) {
+function calculateTimeDifference(start_time_str, end_time_str,mode) {
     var startTime = new Date(start_time_str);
     var endTime = new Date(end_time_str);
     var timeDifference = endTime - startTime;
     var seconds = Math.floor(timeDifference / 1000);
+    if(mode==="seconds"){
+     return seconds
+    }else{
     var years = Math.floor(seconds / (3600 * 24 * 365.25));
     var months = Math.floor((seconds % (3600 * 24 * 365.25)) / (3600 * 24 * 30.4375));
     seconds %= (3600 * 24 * 30.4375);
@@ -25,7 +28,6 @@ function calculateTimeDifference(start_time_str, end_time_str) {
     seconds %= 3600;
     var minutes = Math.floor(seconds / 60);
     seconds %= 60;
-
     if (years > 0) {
         return `${years}年${months}か月${days}日と${hours}時間${minutes}分${seconds}秒前`;
     } else if (months > 0) {
@@ -39,6 +41,7 @@ function calculateTimeDifference(start_time_str, end_time_str) {
     } else {
         return `${seconds}秒前`;
     }
+}
 }
 
 function Print_checker_for_debugging(data, name) {
@@ -274,7 +277,8 @@ function yahoo_Realtime_data() {
         const reportNum = Yahoo_json_data.hypoInfo.items[0].reportNum;
         const reportTime = formatYahooTimeDate(Yahoo_json_data.hypoInfo.items[0].reportTime);
         const originTime = formatYahooTimeDate(Yahoo_json_data.hypoInfo.items[0].originTime);
-        const set_timeDoriginTime = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time);
+        const set_timeDoriginTime = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time,"nomal");
+        const set_timeDoriginTimeseconds = calculateTimeDifference(Yahoo_json_data.hypoInfo.items[0].originTime, set_time,"seconds");
         const regionName = Yahoo_json_data.hypoInfo.items[0].regionName;
         const calcIntensity = Yahoo_json_data.hypoInfo.items[0].calcintensity.replace("0", "");
         const magnitude = Yahoo_json_data.hypoInfo.items[0].magnitude;
@@ -286,7 +290,7 @@ function yahoo_Realtime_data() {
         const Wave_longitude = Yahoo_json_data.psWave.items[0].longitude.replace("E", "");
         let pRadius = parseFloat(Yahoo_json_data.psWave.items[0].pRadius).toFixed(0);
         let sRadius = parseFloat(Yahoo_json_data.psWave.items[0].sRadius).toFixed(0);
-        yahoo_result_data_list = { "situation": "EEW_has_been_issued", "get_date": format_get_date, "strongEarthquake": strongEarthquake, "reportId": reportId, "reportNum": reportNum, "reportTime": reportTime, "originTime": originTime, "set_timeDoriginTime": set_timeDoriginTime, "calcIntensity": calcIntensity, "regionName": regionName, "magnitude": magnitude, "depth": depth, "isFinal": isFinal, "isTraining": isTraining, "isCancel": isCancel, "Wave_latitude": Wave_latitude, "Wave_longitude": Wave_longitude, "pRadius": pRadius, "sRadius": sRadius, "status": Request_status, "url_time_date": url_time_date, "API_URL": apiUrl, "Telegram": Yahoo_json_data };
+        yahoo_result_data_list = { "situation": "EEW_has_been_issued", "get_date": format_get_date, "strongEarthquake": strongEarthquake, "reportId": reportId, "reportNum": reportNum, "reportTime": reportTime, "originTime": originTime, "set_timeDoriginTime": set_timeDoriginTime,"set_timeDoriginTimeseconds":set_timeDoriginTimeseconds,"calcIntensity": calcIntensity, "regionName": regionName, "magnitude": magnitude, "depth": depth, "isFinal": isFinal, "isTraining": isTraining, "isCancel": isCancel, "Wave_latitude": Wave_latitude, "Wave_longitude": Wave_longitude, "pRadius": pRadius, "sRadius": sRadius, "status": Request_status, "url_time_date": url_time_date, "API_URL": apiUrl, "Telegram": Yahoo_json_data };
     }
     return yahoo_result_data_list
 }
