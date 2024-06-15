@@ -290,7 +290,30 @@ function yahoo_Realtime_data() {
         const Wave_longitude = Yahoo_json_data.psWave.items[0].longitude.replace("E", "");
         let pRadius = parseFloat(Yahoo_json_data.psWave.items[0].pRadius).toFixed(0);
         let sRadius = parseFloat(Yahoo_json_data.psWave.items[0].sRadius).toFixed(0);
-        yahoo_result_data_list = { "situation": "EEW_has_been_issued", "get_date": format_get_date, "strongEarthquake": strongEarthquake, "reportId": reportId, "reportNum": reportNum, "reportTime": reportTime, "originTime": originTime, "set_timeDoriginTime": set_timeDoriginTime,"set_timeDoriginTimeseconds":set_timeDoriginTimeseconds,"calcIntensity": calcIntensity, "regionName": regionName, "magnitude": magnitude, "depth": depth, "isFinal": isFinal, "isTraining": isTraining, "isCancel": isCancel, "Wave_latitude": Wave_latitude, "Wave_longitude": Wave_longitude, "pRadius": pRadius, "sRadius": sRadius, "status": Request_status, "url_time_date": url_time_date, "API_URL": apiUrl, "Telegram": Yahoo_json_data };
+        yahoo_result_data_list = { "situation": "EEW_has_been_issued", 
+            "get_date": format_get_date, 
+            "strongEarthquake": strongEarthquake, 
+            "reportId": reportId, 
+            "reportNum": reportNum, 
+            "reportTime": reportTime, 
+            "originTime": originTime, 
+            "set_timeDoriginTime": set_timeDoriginTime,
+            "set_timeDoriginTimeseconds":set_timeDoriginTimeseconds,
+            "calcIntensity": calcIntensity, 
+            "regionName": regionName, 
+            "magnitude": magnitude, 
+            "depth": depth, 
+            "isFinal": isFinal, 
+            "isTraining": isTraining, 
+            "isCancel": isCancel, 
+            "Wave_latitude": Wave_latitude, 
+            "Wave_longitude": Wave_longitude, 
+            "pRadius": pRadius, 
+            "sRadius": sRadius, 
+            "status": Request_status, 
+            "url_time_date": url_time_date, 
+            "API_URL": apiUrl, 
+            "Telegram": Yahoo_json_data };
     }
     return yahoo_result_data_list
 }
@@ -408,6 +431,7 @@ function Message_Conversion(Telegram_List_data) {
     推定震度:${info["calcIntensity"]} 現在地予想震度:約${info["distanceAttenuationType_calcIntensity"].toFixed(0)}(${info["distanceAttenuationType_calcIntensity"]})
     推定規模（マグニチュード):${info["magnitude"]}
     推定深さ:${info["depth"]}km
+    推定実体波位置: P波:${info["pRadius"]}km地点(残り到達時間:${Math.round(info["epicenterDistance"]/8)-info["set_timeDoriginTimeseconds"]}秒) S波:${info["sRadius"]}km地点(残り到達時間:${Math.round(info["epicenterDistance"]/4)-info["set_timeDoriginTimeseconds"]}秒)
     予想初期微動継続時間:約${((info["epicenterDistance"] / 8).toFixed(0))}秒
     `;
     }
