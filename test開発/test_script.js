@@ -44,7 +44,6 @@ function Kyoushin_moniter_url() {
 
 function Update() {
     const urls = Kyoushin_moniter_url();
-    document.getElementById('imgKyoushinS').src = urls.Kyoushin_S_Url;
     document.getElementById('imgKyoushinB').src = urls.Kyoushin_B_Url;
     document.getElementById('imgTyoushuki').src = urls.Tyoushuki_Url;
     document.getElementById('imgPGA').src = urls.PGA_Url;
