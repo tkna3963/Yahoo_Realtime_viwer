@@ -78,6 +78,7 @@ function Location_information_update(position) {
     var speed = position.coords.speed;
     var result_data = [latitude, longitude, accuracy, altitudeAccuracy, heading, speed];
     Location_list.push(result_data);
+    console.log(Location_list)
 }
 
 Location_information_setup()
@@ -367,6 +368,7 @@ function parseStringArrayToNumberArray(stringArray) {
 
 let Device_info_list = {};
 function Information_distribution_board() {
+    Location_information_setup()
     const Earthquake_info_list = yahoo_Realtime_data()
     const Yahoo_locate_list = Yahoo_locate_data()["items"]
     Earthquake_info_list.Yahoo_locate_list = Yahoo_locate_list;
@@ -376,6 +378,7 @@ function Information_distribution_board() {
     Earthquake_info_list.Earthquake_intensity_greater_than_zero_list = Earthquake_info_list["seismicIntensityList"].filter(value => value >= 0);
     Earthquake_info_list.Earthquake_intensity_greater_than_zero_Count = Earthquake_info_list["seismicIntensityList"].filter(value => value >= 0).length;
     Earthquake_info_list.MaxIntensityLocation = findMaxIntensityLocations(Yahoo_locate_list, Earthquake_info_list["seismicIntensityList"])
+    
     if (Location_list[Location_list.length - 1] !== undefined) {
         const Location_data = Location_list[Location_list.length - 1];
         Device_info_list.Current_location_latitude = Location_data[0]
@@ -384,6 +387,7 @@ function Information_distribution_board() {
         Device_info_list.Current_location_latitude = 35.658;
         Device_info_list.Current_location_longitude = 139.4413;
     }
+   
     const yahoo_calDistance_list = [];
     for (var yahoo_locate_item of Yahoo_locate_list) {
         yahoo_calDistance_list.push(calDistance([Device_info_list["Current_location_latitude"], Device_info_list["Current_location_longitude"]], yahoo_locate_item));
@@ -398,7 +402,7 @@ function Information_distribution_board() {
     Earthquake_info_list.PGV = Distance_attenuation_type_data_list[2]
     Earthquake_info_list.ARV = Distance_attenuation_type_data_list[3]
     const result_data = { "Device_info_list": Device_info_list, "Earthquake_info_list": Earthquake_info_list };
-    List_checker_for_debugging(result_data["Earthquake_info_list"])
+    //List_checker_for_debugging(result_data["Earthquake_info_list"])
     return result_data
 }
 
@@ -455,8 +459,3 @@ function MAP(datas) {
     device_marker.bindPopup("デバイスの現在位置").openPopup();
 
 }
-
-
-Update();
-setInterval(Update, 1000);
-updateImages();
