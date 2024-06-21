@@ -39,11 +39,21 @@
         function main() {
             main_datas = Information_distribution_board();
             document.getElementById('main_text_area').innerHTML = Message_Conversion(main_datas);
+            Kyoushin_Update()
             MAP(main_datas)
         }
 
         main();
         setInterval(main, 1000);
+    </script>
+    <button onclick="openSubWindow()">Kyoushin_Moniter</button>
+    <script>
+        function openImage(src) {
+            window.open(src, "_blank", "width=600, height=400");
+        }
+        function openSubWindow() {
+            window.open("test_sub_window.html", "_blank", "width=342px, height=440px");
+        }
     </script>
 </body>
 
