@@ -28,22 +28,3 @@
     width: 100%;
     height: 70dvb; /* 適切な高さを指定 */
 }
-
-.image-container {
-    display: inline-block; /* 追加 */
-    margin-right: 10px;
-}
-
-.image-container img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-}
-
-.image-container {
-    background-image: url('https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/CommonImg/base_map_w.gif');
-    background-size: cover; /* 画像をコンテナに合わせて調整 */
-    background-repeat: no-repeat; /* 画像の繰り返しを防ぐ */
-    background-position: center; /* 画像を中央に配置 */
-    cursor: pointer; /* マウスカーソルをポインターに変更 */
-}
