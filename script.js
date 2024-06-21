@@ -407,7 +407,7 @@ function Information_distribution_board() {
 }
 
 let EEW_music = document.getElementById("EEW_music")
-EEW_music.volume = 1;
+EEW_music.volume = 0.9;
 function Message_Conversion(Telegram_List_data) {
     let text = '';
     const info = Telegram_List_data["Earthquake_info_list"];
