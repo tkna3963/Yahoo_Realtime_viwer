@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealTime_Yahoo_Earthquake_Info</title>
+    <script src="scripts.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="infos_h1"></div>
+    <h1 id="test"></h1>
+    <script>
+        // main関数でデータを取得して表示
+        function main() {
+            const Yahoodata = yahoo_Realtime_data();
+            document.getElementById("test").innerText = objectToJsonText(Yahoodata);
+        }
+
+        // 1秒ごとにmainを実行
+        setInterval(main, 1000);
+    </script>
+</body>
+</html>
