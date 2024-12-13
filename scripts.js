@@ -179,4 +179,3 @@ function yahoo_Realtime_data() {
     }
     return yahoo_result_data_list
 }
-
