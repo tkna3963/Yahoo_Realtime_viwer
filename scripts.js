@@ -124,7 +124,7 @@ function yahoo_Realtime_data() {
     const xhr = new XMLHttpRequest();
     xhr.open("GET", apiUrl, false);
     xhr.send();
-    Request_status = xhr.status
+    Request_status = `${xhr.status}${xhr.statusText}`
     const Yahoo_json_data = JSON.parse(xhr.responseText);
     format_get_date = formatYahooTimeDate(set_time)
 
