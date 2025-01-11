@@ -41,6 +41,60 @@ function Location_information_setup() {
     }
 }
 
+function parseCustomDate(dateStr) {
+    // 正規表現で日付と時刻を抽出（年の余分な「年」に対応）
+    const match = dateStr.match(
+        /(\d{4})年(?:\d{2})年(\d{2})日.*?(\d{2})時(\d{2})分(\d{2})秒/
+    );
+
+    if (!match) {
+        console.error("日付のフォーマットが正しくありません:", dateStr);
+        return NaN;
+    }
+
+    const [_, year, day, hour, minute, second] = match.map(Number);
+
+    // 月は手動で処理（2つ目の「年」が「月」の誤記に由来している前提）
+    const month = parseInt(dateStr.match(/年(\d{2})年/)[1], 10);
+
+    // Dateオブジェクトを作成
+    return new Date(year, month - 1, day, hour, minute, second);
+}
+
+
+function calculateTimeDifference(reportTimeStr, eventTimeStr) {
+    // 時間を文字列からDateオブジェクトに変換
+    const reportTime = new Date(reportTimeStr);
+    const eventTime = new Date(eventTimeStr);
+
+    // 時差を計算（ミリ秒単位）
+    const timeDifferenceMs = reportTime - eventTime;
+
+    // ミリ秒を秒に変換
+    const timeDifferenceSeconds = timeDifferenceMs / 1000;
+
+    return timeDifferenceSeconds; // 秒単位の時差を返す
+}
+
+// 震央と地点の距離を計算するヘルパー関数（例: 緯度経度を使った距離計算）
+function calculateDistance([lat1, lon1], [lat2, lon2]) {
+    const R = 6371; // 地球の半径（km）
+    const phi1 = lat1 * Math.PI / 180;
+    const phi2 = lat2 * Math.PI / 180;
+    const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+    const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // キロメートル単位
+}
+
+
+
 function text_speak(test) {
     const utterance = new SpeechSynthesisUtterance(test);
     speechSynthesis.speak(utterance);
@@ -105,79 +159,159 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
-function calDistance(A, B) {
-    const R = 6371; // 地球の半径 (km)
-    const dLat = deg2rad(B[0] - A[0]);
-    const dLon = deg2rad(B[1] - A[1]);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(A[0])) * Math.cos(deg2rad(B[0])) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return parseFloat(distance.toFixed(2));
-}
+let set_time_counter = 0;
+let set_time;
 
-function yahoo_Realtime_data() {
-    const now_time_date = now_time();
-    const set_time = new Date(now_time_date.getTime() - 3 * 1000);
-    const url_time_date = Yahoo_Time_date_fromat(set_time);
+function yahooRealtimeData() {
+    var timeMachineInput = document.getElementById("time_machine");
+    var timeMachineValue = timeMachineInput.value;
+
+    if (timeMachineValue === "") {
+        const currentDateTime = new Date();
+        set_time = new Date(currentDateTime.getTime() - 3 * 1000);
+    } else {
+        set_time = new Date(timeMachineValue);
+        set_time_counter += 1;
+        set_time = new Date(set_time.getTime() + set_time_counter * 1000);
+    }
+
+    const url_time_date = Yahoo_Time_date_fromat(set_time); // Assuming this formats the date correctly.
+
+    // Test URL for API (replace with `url_time_date` as needed)
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${url_time_date}.json`;
-    //const apiUrl = "https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/20240417/20240417231516.json";
 
-
+    // Make synchronous API request
     const xhr = new XMLHttpRequest();
     xhr.open("GET", apiUrl, false);
     xhr.send();
 
-    const Request_status = `${xhr.status}${xhr.statusText}`;
-    const Yahoo_json_data = JSON.parse(xhr.responseText);
-    const format_get_date = formatYahooTimeDate(set_time);
+    const request_status = `${xhr.status}${xhr.statusText}`;
+    const yahoo_json_data = JSON.parse(xhr.responseText);
+    const format_get_date = formatYahooTimeDate(set_time); // Assuming this formats the date correctly.
 
-    if (Yahoo_json_data.hypoInfo === null) {
+    // Structure for no EEW
+    if (yahoo_json_data.hypoInfo === null) {
         return {
-            "situation": "EEW_hasn't_been_issued",
-            "get_date": format_get_date,
-            "strongEarthquake": Yahoo_json_data.realTimeData.intensity,
-            "url_time_date": url_time_date,
-            "status": Request_status,
-            "API_URL": apiUrl,
-            "Telegram": Yahoo_json_data
-        };
-    } else {
-        const info = Yahoo_json_data.hypoInfo.items[0];
-        return {
-            "situation": "EEW_has_been_issued",
-            "get_date": format_get_date,
-            "strongEarthquake": Yahoo_json_data.realTimeData.intensity,
-            "reportId": info.reportId,
-            "reportNum": info.reportNum,
-            "reportTime": formatYahooTimeDate(info.reportTime),
-            "originTime": formatYahooTimeDate(info.originTime),
-            "regionName": info.regionName,
-            "calcIntensity": info.calcintensity.replace("0", ""),
-            "magnitude": info.magnitude,
-            "depth": info.depth.replace("km", ""),
-            "Wave_latitude": Yahoo_json_data.psWave.items[0].latitude.replace("N", ""),
-            "Wave_longitude": Yahoo_json_data.psWave.items[0].longitude.replace("E", ""),
-            "pRadius": Math.round(Yahoo_json_data.psWave.items[0].pRadius),
-            "sRadius": Math.round(Yahoo_json_data.psWave.items[0].sRadius),
-            "status": Request_status,
-            "url_time_date": url_time_date,
-            "API_URL": apiUrl,
-            "Telegram": Yahoo_json_data
+            situation: "EEW_hasn't_been_issued",
+            get_date: format_get_date,
+            strongEarthquake: yahoo_json_data.realTimeData.intensity,
+            url_time_date: url_time_date,
+            status: request_status,
+            API_URL: apiUrl,
+            Telegram: yahoo_json_data
         };
     }
+
+    // Structure for EEW issued
+    const hypoInfo = yahoo_json_data.hypoInfo.items[0];
+    const psWave = yahoo_json_data.psWave.items[0];
+
+    return {
+        situation: "EEW_has_been_issued",
+        get_date: format_get_date,
+        strongEarthquake: yahoo_json_data.realTimeData.intensity,
+        reportId: hypoInfo.reportId,
+        reportNum: hypoInfo.reportNum,
+        reportTime: formatYahooTimeDate(hypoInfo.reportTime),
+        originTime: formatYahooTimeDate(hypoInfo.originTime),
+        regionName: hypoInfo.regionName,
+        calcIntensity: hypoInfo.calcintensity.replace("0", ""),
+        magnitude: hypoInfo.magnitude,
+        depth: hypoInfo.depth.replace("km", ""),
+        Wave_latitude: psWave.latitude.replace("N", ""),
+        Wave_longitude: psWave.longitude.replace("E", ""),
+        pRadius: Math.round(psWave.pRadius),
+        sRadius: Math.round(psWave.sRadius),
+        status: request_status,
+        url_time_date: url_time_date,
+        API_URL: apiUrl,
+        Telegram: yahoo_json_data
+    };
 }
+
+
+// 地表情報提供APIを呼び出す関数
+function surfaceGroundInformationProvisionAPI(現在地緯度, 現在地経度) {
+    // ローカルストレージからデータを取得
+    const savedData = localStorage.getItem('surfaceARV');
+    // ローカルストレージに保存されたデータがあればそれを返す
+    if (savedData) {
+        return JSON.parse(savedData);
+    } else {
+        // XMLHttpRequestを使用して同期的にJSONファイルを読み込む
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `https://www.j-shis.bosai.go.jp/map/api/sstrct/V2/meshinfo.geojson?position=${現在地経度},${現在地緯度}&epsg=4301`, false); // 同期的にリクエストを行う
+        xhr.send();
+        // レスポンスが成功（ステータスコード200）の場合のみ処理
+        if (xhr.status === 200) {
+            const json_data = JSON.parse(xhr.responseText);
+
+            // ローカルストレージにデータを保存
+            localStorage.setItem('surfaceARV', JSON.stringify(json_data));
+
+            return json_data; // JSONを解析して返す
+        } else {
+            console.error('Error loading settings:', xhr.status);
+            return null;
+        }
+    }
+}
+// 距離減衰タイプを計算する関数
+function calculateDistanceAttenuation( magJMA, depth, epicenterLocation, pointLocation, amplificationFactor ) {
+    // マグニチュード (Mw) の計算
+    const magW = magJMA - 0.171;
+
+    // 断層長（半径）の計算
+    const faultRadius = 10 ** (0.5 * magW - 1.85) / 2;
+
+    // 震央からの距離の計算
+    const epicenterDistance = calculateDistance(epicenterLocation, pointLocation);
+
+    // 震源からの距離を計算（最小値3km）
+    const hypocenterDistance = Math.max(Math.sqrt(depth ** 2 + epicenterDistance ** 2) - faultRadius, 3);
+
+    // 工学基盤上の最大速度（Vs = 600 m/s）を計算
+    const maxSpeed600 = 10 ** (
+        0.58 * magW +
+        0.0038 * depth - 1.29 -
+        Math.log10(hypocenterDistance + 0.0028 * 10 ** (0.5 * magW)) - 
+        0.002 * hypocenterDistance
+    );
+
+    // 基盤の速度（Vs = 400 m/s）の変換
+    const maxSpeed400 = maxSpeed600 * 1.31;
+
+    // 増幅率を使って最終的な速度を計算
+    const surfaceSpeed = maxSpeed400 * amplificationFactor;
+
+    // 震度を計算
+    const intensity = parseFloat((2.68 + 1.72 * Math.log10(surfaceSpeed)).toFixed(2));
+
+    // 結果を返す（震度、震央からの距離、最大速度、増幅率）
+    return { intensity, epicenterDistance, surfaceSpeed: parseFloat(surfaceSpeed.toFixed(3)), amplificationFactor };
+}
+
 
 function datas_bord() {
     const results_datalist = {};
-    const YahooDatas = yahoo_Realtime_data();
+    const YahooDatas = yahooRealtimeData();
 
     results_datalist.yahoo_datas = YahooDatas;
     results_datalist.seismicIntensityList = YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char));
     results_datalist.MAXseismicIntensity = Math.max(...YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char)));
     results_datalist.latitude = currentLocation.latitude;
     results_datalist.longitude = currentLocation.longitude;
+
+    if (currentLocation.latitude, currentLocation.longitude,YahooDatas.magnitude) {
+        var SFGIPJ = surfaceGroundInformationProvisionAPI(currentLocation.latitude, currentLocation.longitude)
+        var SFGIPARV =SFGIPJ.features[0].properties.ARV
+        var SFC=calculateDistanceAttenuation(YahooDatas.magnitude,YahooDatas.depth,[YahooDatas.Wave_latitude,YahooDatas.Wave_longitude],[currentLocation.latitude, currentLocation.longitude],SFGIPARV)
+        var SFCI=SFC.intensity
+        var SFCD=Math.round(SFC.epicenterDistance)
+        results_datalist.SFCI = SFCI;
+        results_datalist.SFCD = SFCD;
+    
+    }
 
     return results_datalist;
 }

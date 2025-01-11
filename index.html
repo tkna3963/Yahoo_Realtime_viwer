@@ -209,6 +209,9 @@
                     <label>現在位置:</label>
                     <value id="location">取得中...</value>
                 </div>
+                <div class="data-point">
+                    <input id="time_machine" type="datetime-local">
+                </div>
             </div>
         </div>
 
@@ -224,6 +227,10 @@
                         <div class="info-item">
                             <span class="label">最大強震震度</span>
                             <span class="value" id="max-intensity">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">現在地予想震度</span>
+                            <span class="value" id="calclocate-intensity">--</span>
                         </div>
                         <div class="info-item">
                             <span class="label">予想最大震度</span>
@@ -262,12 +269,15 @@
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
                 document.getElementById("p-radius").textContent = data.yahoo_datas.pRadius || "--";
                 document.getElementById("s-radius").textContent = data.yahoo_datas.sRadius || "--";
+                document.getElementById("reportNum").textContent = data.yahoo_datas.reportNum || "--";
+                document.getElementById("calclocate-intensity").textContent=data.SFCI || "--";
             } else {
                 document.getElementById("calc-intensity").textContent = "--";
                 document.getElementById("magnitude").textContent = "--";
                 document.getElementById("p-radius").textContent = "--";
                 document.getElementById("s-radius").textContent = "--";
                 document.getElementById("reportNum").textContent = "--";
+                document.getElementById("calclocate-intensity").textContent= "--";
             }
         }
 
@@ -293,10 +303,11 @@
                     { label: "地震発生時刻", value: details.originTime },
                     { label: "震源地名", value: details.regionName },
                     { label: "緯度経度座標", value: `${details.Wave_latitude},${details.Wave_longitude}` },
+                    { label: "震源距離", value: `${datas_bords.SFCD}km`},
                     { label: "震源の深さ (km)", value: details.depth },
                     { label: "予想最大深度", value: details.calcIntensity },
                     { label: "マグニチュード", value: details.magnitude },
-                    { label: "波の地点", value: `${details.pRadius}km ${details.sRadius}km` }
+                    { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD/8))-calculateTimeDifference(parseCustomDate(details.reportTime),parseCustomDate(details.originTime))}秒) ${details.sRadius}km(約$${(Math.round(datas_bords.SFCD/4))-calculateTimeDifference(parseCustomDate(details.reportTime),parseCustomDate(details.originTime))}秒)` }
                 ];
 
                 detailItems.forEach(item => {
