@@ -256,16 +256,13 @@
 
     <script>
         function updateCircleInfo(data) {
-            document.getElementById("reportNum").textContent = data.yahoo_datas.reportNum;
-
+            document.getElementById("max-intensity").textContent = data.MAXseismicIntensity;
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
-                document.getElementById("max-intensity").textContent = data.MAXseismicIntensity || "--";
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
                 document.getElementById("p-radius").textContent = data.yahoo_datas.pRadius || "--";
                 document.getElementById("s-radius").textContent = data.yahoo_datas.sRadius || "--";
             } else {
-                document.getElementById("max-intensity").textContent = "--";
                 document.getElementById("calc-intensity").textContent = "--";
                 document.getElementById("magnitude").textContent = "--";
                 document.getElementById("p-radius").textContent = "--";
