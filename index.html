@@ -4,22 +4,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RealTime_Yahoo_Earthquake_Info</title>
+    <title>リアルタイム地震情報</title>
     <script src="scripts.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary-color: #00f7ff;
+            --secondary-color: #ff00d4;
+            --background: #000813;
+            --grid-color: rgba(0, 247, 255, 0.1);
+            --panel-bg: rgba(0, 20, 40, 0.8);
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background);
+            color: var(--primary-color);
+            font-family: 'Consolas', monospace;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Grid Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: -1;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            animation: scanline 2s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .info-card {
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 247, 255, 0.3);
+            padding: 10px;
+            background: rgba(0, 20, 40, 0.5);
+        }
+
+        .info-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .data-point {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .data-point label {
+            color: var(--primary-color);
+        }
+
+        .data-point value {
+            color: #fff;
+        }
+
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .center-circle {
+            width: 400px;
+            /* 円の大きさを変更 */
+            height: 400px;
+            /* 円の大きさを変更 */
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .circle-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            border: 1px solid rgba(0, 247, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .circle-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            /* パディングを広げて文字を大きく */
+            box-sizing: border-box;
+        }
+
+        .intensity-info .label,
+        .magnitude-info .label {
+            font-size: 1.2em;
+            /* ラベルの文字サイズを大きく */
+        }
+
+        .intensity-info .value,
+        .magnitude-info .value {
+            font-size: 2.0em;
+            /* 値の文字サイズを大きく */
+        }
+
+        .wave-info .info-item {
+            font-size: 1.1em;
+            /* 波の地点の文字サイズを大きく */
+        }
+
+        #jsonarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            font-family: 'Consolas', monospace;
+            font-size: 0.8em;
+            resize: none;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #jsonarea:focus {
+            outline: none;
+        }
+
+        @media (max-width: 1200px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                height: auto;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="infos_h1"></div>
-    <h1 id="test">取得中</h1>
+    <main>
+        <div class="panel">
+            <div class="info-card">
+                <h2>基本情報</h2>
+                <div class="data-point">
+                    <label>現在時刻:</label>
+                    <value id="get_time">読み込み中...</value>
+                </div>
+                <div class="data-point">
+                    <label>現在位置:</label>
+                    <value id="location">取得中...</value>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel center-panel">
+            <div class="center-circle">
+                <div class="circle-inner"></div>
+                <div class="circle-content">
+                    <div class="intensity-info">
+                        <div class="info-item">
+                            <span class="label">発報番号</span>
+                            <span class="value" id="reportNum">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">最大強震震度</span>
+                            <span class="value" id="max-intensity">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">予想最大震度</span>
+                            <span class="value" id="calc-intensity">--</span>
+                        </div>
+                    </div>
+                    <div class="magnitude-info">
+                        <span class="label">M</span>
+                        <span class="value" id="magnitude">--</span>
+                    </div>
+                    <div class="wave-info">
+                        <div class="info-item">P波: <span id="p-radius">--</span>km</div>
+                        <div class="info-item">S波: <span id="s-radius">--</span>km</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h2>地震詳細情報</h2>
+                <div id="earthquake-details">
+                    <div class="data-point">情報を取得中...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>詳細データ（JSON）</h2>
+            <textarea id="jsonarea" readonly>取得中...</textarea>
+        </div>
+    </main>
+
     <script>
-        // main関数でデータを取得して表示
-        function main() {
-            const Yahoodata = yahoo_Realtime_data();
-            document.getElementById("test").innerText = objectToJsonText(Yahoodata);
+        function updateCircleInfo(data) {
+            if (data.yahoo_datas.situation === "EEW_has_been_issued") {
+                document.getElementById("max-intensity").textContent = data.MAXseismicIntensity || "--";
+                document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
+                document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
+                document.getElementById("p-radius").textContent = data.yahoo_datas.pRadius || "--";
+                document.getElementById("s-radius").textContent = data.yahoo_datas.sRadius || "--";
+                document.getElementById("reportNum").textContent = data.yahoo_datas.reportNum;
+            } else {
+                document.getElementById("max-intensity").textContent = "--";
+                document.getElementById("calc-intensity").textContent = "--";
+                document.getElementById("magnitude").textContent = "--";
+                document.getElementById("p-radius").textContent = "--";
+                document.getElementById("s-radius").textContent = "--";
+                document.getElementById("reportNum").textContent = "--";
+            }
         }
 
-        // 1秒ごとにmainを実行
+        function main() {
+            const datas_bords = datas_bord();
+
+            document.getElementById("get_time").innerText = datas_bords["yahoo_datas"]["get_date"];
+
+            const latitude = datas_bords.latitude || "不明";
+            const longitude = datas_bords.longitude || "不明";
+            document.getElementById("location").innerText = `緯度: ${latitude}, 経度: ${longitude}`;
+
+            const detailsContainer = document.getElementById("earthquake-details");
+            detailsContainer.innerHTML = "";
+
+            if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
+                const details = datas_bords.yahoo_datas;
+
+                const detailItems = [
+                    { label: "報告ID", value: details.reportId },
+                    { label: "発報番号", value: details.reportNum },
+                    { label: "報告時間", value: details.reportTime },
+                    { label: "地震発生時刻", value: details.originTime },
+                    { label: "震源地名", value: details.regionName },
+                    { label: "緯度経度座標", value: `${details.Wave_latitude},${details.Wave_longitude}` },
+                    { label: "震源の深さ (km)", value: details.depth },
+                    { label: "予想最大深度", value: details.calcIntensity },
+                    { label: "マグニチュード", value: details.magnitude },
+                    { label: "波の地点", value: `${details.pRadius}km ${details.sRadius}km` }
+                ];
+
+                detailItems.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "data-point";
+                    div.innerHTML = `<label>${item.label}:</label><value>${item.value}</value>`;
+                    detailsContainer.appendChild(div);
+                });
+            } else {
+                detailsContainer.innerHTML = "<div class='data-point'>現在有効な地震情報はありません。</div>";
+            }
+
+            document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
+            updateCircleInfo(datas_bords);
+        }
+
         setInterval(main, 1000);
     </script>
 </body>
