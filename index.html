@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>リアルタイム地震情報</title>
     <script src="scripts.js"></script>
-    <script src="htmljs.js"></script>
+    <script src="hjs.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
@@ -56,8 +58,10 @@
                         <span class="value" id="magnitude">--</span>
                     </div>
                     <div class="wave-info">
-                        <div class="info-item">P波: <span id="p-radius">--</span>km</div>
-                        <div class="info-item">S波: <span id="s-radius">--</span>km</div>
+                        <div class="info-item">P波: <span id="p-radius">--</span>
+                        </div>
+                        <div class="info-item">S波: <span id="s-radius">--</span>
+                        </div>
                     </div>
                 </div>
             </div>
