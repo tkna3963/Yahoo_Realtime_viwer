@@ -1,3 +1,228 @@
-body{
-    background-color: slategrey;
+:root {
+    --primary-color: #00f7ff;
+    --secondary-color: #ff00d4;
+    --background: #000813;
+    --grid-color: rgba(0, 247, 255, 0.1);
+    --panel-bg: rgba(0, 20, 40, 0.8);
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background);
+    color: var(--primary-color);
+    font-family: 'Consolas', monospace;
+    min-height: 100vh;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Grid Background */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: -1;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr;
+    gap: 20px;
+    height: calc(100vh - 40px);
+}
+
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
+    padding: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    animation: scanline 2s linear infinite;
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.info-card {
+    margin-bottom: 15px;
+    border: 1px solid rgba(0, 247, 255, 0.3);
+    padding: 10px;
+    background: rgba(0, 20, 40, 0.5);
+}
+
+.info-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: var(--secondary-color);
+    border-bottom: 1px solid var(--secondary-color);
+    padding-bottom: 5px;
+}
+
+.data-point {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.data-point label {
+    color: var(--primary-color);
+}
+
+.data-point value {
+    color: #fff;
+}
+
+.center-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.center-circle {
+    width: 400px; /* 円の大きさ */
+    height: 400px; /* 円の大きさ */
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    margin: 20px auto;
+    position: relative;
+}
+
+.circle-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    border: 1px solid rgba(0, 247, 255, 0.5);
+    border-radius: 50%;
+}
+
+.circle-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.intensity-info .label,
+.magnitude-info .label {
+    font-size: 1.2em;
+}
+
+.intensity-info .value,
+.magnitude-info .value {
+    font-size: 2.0em;
+}
+
+.wave-info .info-item {
+    font-size: 1.1em;
+}
+
+#jsonarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: var(--primary-color);
+    font-family: 'Consolas', monospace;
+    font-size: 0.8em;
+    resize: none;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#jsonarea:focus {
+    outline: none;
+}
+
+/* スマホ・タブレット用の調整 */
+@media (max-width: 768px) {
+    body {
+        padding: 10px; /* スマホ向けに余白を少し減らす */
+    }
+
+    main {
+        grid-template-columns: 1fr; /* 一列にする */
+        grid-template-rows: auto;
+        height: auto;
+        padding: 10px 0; /* パディング調整 */
+    }
+
+    .panel {
+        padding: 10px; /* パネル内の余白も減らす */
+    }
+
+    .center-circle {
+        width: 300px; /* 円を小さく */
+        height: 300px; /* 同じく小さく */
+    }
+
+    .circle-inner {
+        width: 70%; /* 内部円も少し小さく */
+        height: 70%; 
+    }
+
+    .circle-content {
+        padding: 10px; /* 中のパディングも減らす */
+    }
+
+    #jsonarea {
+        font-size: 0.7em; /* テキストのフォントサイズを小さく */
+        padding: 8px; /* 少し余白を減らす */
+    }
+
+    /* その他、要素のサイズや間隔を調整 */
+    .info-card h2 {
+        font-size: 1em; /* 見出しの文字を少し小さく */
+    }
+
+    .data-point label,
+    .data-point value {
+        font-size: 0.8em; /* データ項目の文字を小さく */
+    }
+}
+
+/* 中画面用調整 (900px 以上) */
+@media (max-width: 1200px) {
+    main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        height: auto;
+    }
 }
