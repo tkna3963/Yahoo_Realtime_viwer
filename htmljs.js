@@ -43,7 +43,7 @@ function main() {
             { label: "震源の深さ (km)", value: details.depth },
             { label: "予想最大深度", value: details.calcIntensity },
             { label: "マグニチュード", value: details.magnitude },
-            { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD/8))-calculateTimeDifference(parseCustomDate(details.reportTime),parseCustomDate(details.originTime))}秒) ${details.sRadius}km(約$${(Math.round(datas_bords.SFCD/4))-calculateTimeDifference(parseCustomDate(details.reportTime),parseCustomDate(details.originTime))}秒)` }
+            { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD/8))-calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),parseCustomDate(details.originTime))}秒) ${details.sRadius}km(約$${(Math.round(datas_bords.SFCD/4))-calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),parseCustomDate(details.originTime))}秒)` }
         ];
 
         detailItems.forEach(item => {
