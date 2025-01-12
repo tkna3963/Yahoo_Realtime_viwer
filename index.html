@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>リアルタイム地震情報</title>
     <script src="scripts.js"></script>
-    <script src="hjs.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
+    <audio src="Required_files/Continue1.wav" id="EEWmusc"></audio>
     <main>
         <div class="panel">
             <div class="info-card">
@@ -28,6 +28,7 @@
                 <div class="data-point">
                     <input id="time_machine" type="datetime-local">
                 </div>
+                <div id="map" style="height: 400px; width: 100%;"></div>
             </div>
         </div>
 
@@ -78,6 +79,125 @@
             <textarea id="jsonarea" readonly>取得中...</textarea>
         </div>
     </main>
+
+    <script>
+        // 地図の作成
+        const map = L.map('map').setView([35.6895, 139.6917], 10); // 東京を初期位置に
+
+        // OpenStreetMapタイルレイヤーの追加
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let earthquakeMarker = null;  // マーカーを格納する変数
+        let earthquakeCircle = null;  // 円を格納する変数
+        let currentLocationMarker = null; // 現在地のマーカー
+
+        function updateMapWithEarthquake(lat, lon, radius, data) {
+            // マーカーを更新する部分
+            if (earthquakeMarker) {
+                earthquakeMarker.setLatLng([lat, lon]);
+            } else {
+                earthquakeMarker = L.marker([lat, lon]).addTo(map)
+                    .bindPopup(data)
+                    .openPopup();
+            }
+
+            // 円を更新する部分
+            if (earthquakeCircle) {
+                earthquakeCircle.setLatLng([lat, lon]);  // 円の位置を更新
+                earthquakeCircle.setRadius(radius * 1000);  // 円の半径を更新（単位：メートル）
+            } else {
+                earthquakeCircle = L.circle([lat, lon], {
+                    color: 'red',
+                    fillColor: 'red',
+                    fillOpacity: 0.2,
+                    radius: radius * 1000  // 半径をメートルに変換
+                }).addTo(map);
+            }
+        }
+
+        function updateCircleInfo(data, details) {
+            document.getElementById("max-intensity").textContent = data.MAXseismicIntensity;
+            if (data.yahoo_datas.situation === "EEW_has_been_issued") {
+                document.getElementById("EEWmusc").play();
+                document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
+                document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
+                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius/data.SFCD)*100)}%})` || "--";
+                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius/data.SFCD)*100)}%})` || "--";
+                document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
+                document.getElementById("calclocate-intensity").textContent = data.SFCI || "--";
+            } else {
+                document.getElementById("calc-intensity").textContent = "--";
+                document.getElementById("magnitude").textContent = "--";
+                document.getElementById("p-radius").textContent = "--";
+                document.getElementById("s-radius").textContent = "--";
+                document.getElementById("reportNum").textContent = "--";
+                document.getElementById("calclocate-intensity").textContent = "--";
+            }
+        }
+
+        function main() {
+            const datas_bords = datas_bord();
+
+            document.getElementById("get_time").innerText = datas_bords["yahoo_datas"]["get_date"];
+
+            const locate_latitude = datas_bords.latitude || "不明";
+            const locate_longitude = datas_bords.longitude || "不明";
+            document.getElementById("location").innerText = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
+
+            const detailsContainer = document.getElementById("earthquake-details");
+            detailsContainer.innerHTML = "";
+
+            let details = null;
+
+            // 現在地のピンを表示
+            if (locate_latitude !== "不明" && locate_longitude !== "不明") {
+                if (currentLocationMarker) {
+                    currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);  // 既存のマーカーを更新
+                } else {
+                    currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map)
+                        .bindPopup(`現在地: 緯度 ${locate_latitude}, 経度 ${locate_longitude}`)
+                        .openPopup();
+                }
+            }
+
+            if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
+                details = datas_bords.yahoo_datas;
+
+                const detailItems = [
+                    { label: "報告ID", value: details.reportId },
+                    { label: "発報番号", value: details.reportNum },
+                    { label: "報告時間", value: details.reportTime },
+                    { label: "地震発生時刻", value: details.originTime },
+                    { label: "震源地名", value: details.regionName },
+                    { label: "緯度経度座標", value: `${details.Wave_latitude},${details.Wave_longitude}` },
+                    { label: "震源距離", value: `${datas_bords.SFCD}km` },
+                    { label: "震源の深さ (km)", value: details.depth },
+                    { label: "予想最大深度", value: details.calcIntensity },
+                    { label: "マグニチュード", value: details.magnitude },
+                    { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD / 8)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius/datas_bords.SFCD)*100)}%) ${details.sRadius}km(約${(Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius/datas_bords.SFCD)*100)}%)` }
+                ];
+                
+                if(details.Wave_latitude, details.Wave_longitude){
+                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius,details.regionName );
+                };
+                detailItems.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "data-point";
+                    div.innerHTML = `<label>${item.label}:</label><value>${item.value}</value>`;
+                    detailsContainer.appendChild(div);
+                });
+            } else {
+                detailsContainer.innerHTML = "<div class='data-point'>現在有効な地震情報はありません。</div>";
+            }
+
+            document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
+            updateCircleInfo(datas_bords, details);
+        }
+
+        setInterval(main, 1000);
+    </script>
 </body>
 
 </html>
