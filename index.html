@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    <audio src="Required_files/Continue1.wav" id="EEWmusc"></audio>
+    <audio src="Required_files/Warning1.mp3" id="EEWmusc"></audio>
     <main>
         <div class="panel">
             <div class="info-card">
@@ -82,7 +82,7 @@
 
     <script>
         // 地図の作成
-        const map = L.map('map').setView([35.6895, 139.6917], 10); // 東京を初期位置に
+        const map = L.map('map').setView([0,0], 6); // 東京を初期位置に
 
         // OpenStreetMapタイルレイヤーの追加
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -180,7 +180,7 @@
                 ];
                 
                 if(details.Wave_latitude, details.Wave_longitude){
-                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius,details.regionName );
+                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius,`震央:${details.regionName}(${details.Wave_latitude},${details.Wave_longitude})\n深さ:${details.depth}km\n震央距離:${datas_bords.SFCD}km\n予想最大震度:${details.calcIntensity}\nマグニチュード:${details.magnitude}`);
                 };
                 detailItems.forEach(item => {
                     const div = document.createElement("div");

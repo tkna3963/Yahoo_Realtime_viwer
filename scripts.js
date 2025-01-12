@@ -54,7 +54,7 @@ function parseCustomDate(dateStr) {
 
     const [_, year, day, hour, minute, second] = match.map(Number);
 
-    // 月は手動で処理（2つ目の「年」が「月」の誤記に由来している前提）
+    // 月は手動で処理（2つ目の「年」が「月」の誤記に由来している前提p）
     const month = parseInt(dateStr.match(/年(\d{2})年/)[1], 10);
 
     // Dateオブジェクトを作成
@@ -85,9 +85,9 @@ function calculateDistance([lat1, lon1], [lat2, lon2]) {
     const deltaLambda = (lon2 - lon1) * Math.PI / 180;
 
     const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-              Math.cos(phi1) * Math.cos(phi2) *
-              Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-    
+        Math.cos(phi1) * Math.cos(phi2) *
+        Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // キロメートル単位
@@ -221,8 +221,8 @@ function yahooRealtimeData() {
         depth: hypoInfo.depth.replace("km", ""),
         Wave_latitude: psWave.latitude.replace("N", ""),
         Wave_longitude: psWave.longitude.replace("E", ""),
-        pRadius: Math.round(psWave.pRadius)+21,
-        sRadius: Math.round(psWave.sRadius)+12,
+        pRadius: Math.round(psWave.pRadius) + 21,
+        sRadius: Math.round(psWave.sRadius) + 12,
         status: request_status,
         url_time_date: url_time_date,
         API_URL: apiUrl,
@@ -258,7 +258,7 @@ function surfaceGroundInformationProvisionAPI(現在地緯度, 現在地経度) 
     }
 }
 // 距離減衰タイプを計算する関数
-function calculateDistanceAttenuation( magJMA, depth, epicenterLocation, pointLocation, amplificationFactor ) {
+function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLocation, amplificationFactor) {
     // マグニチュード (Mw) の計算
     const magW = magJMA - 0.171;
 
@@ -275,7 +275,7 @@ function calculateDistanceAttenuation( magJMA, depth, epicenterLocation, pointLo
     const maxSpeed600 = 10 ** (
         0.58 * magW +
         0.0038 * depth - 1.29 -
-        Math.log10(hypocenterDistance + 0.0028 * 10 ** (0.5 * magW)) - 
+        Math.log10(hypocenterDistance + 0.0028 * 10 ** (0.5 * magW)) -
         0.002 * hypocenterDistance
     );
 
@@ -303,15 +303,15 @@ function datas_bord() {
     results_datalist.latitude = currentLocation.latitude;
     results_datalist.longitude = currentLocation.longitude;
 
-    if (currentLocation.latitude, currentLocation.longitude,YahooDatas.magnitude) {
+    if (currentLocation.latitude, currentLocation.longitude, YahooDatas.magnitude) {
         var SFGIPJ = surfaceGroundInformationProvisionAPI(currentLocation.latitude, currentLocation.longitude)
-        var SFGIPARV =SFGIPJ.features[0].properties.ARV
-        var SFC=calculateDistanceAttenuation(YahooDatas.magnitude,YahooDatas.depth,[YahooDatas.Wave_latitude,YahooDatas.Wave_longitude],[currentLocation.latitude, currentLocation.longitude],SFGIPARV)
-        var SFCI=SFC.intensity
-        var SFCD=Math.round(SFC.epicenterDistance)
+        var SFGIPARV = SFGIPJ.features[0].properties.ARV
+        var SFC = calculateDistanceAttenuation(YahooDatas.magnitude, YahooDatas.depth, [YahooDatas.Wave_latitude, YahooDatas.Wave_longitude], [currentLocation.latitude, currentLocation.longitude], SFGIPARV)
+        var SFCI = SFC.intensity
+        var SFCD = Math.round(SFC.epicenterDistance)
         results_datalist.SFCI = SFCI;
         results_datalist.SFCD = SFCD;
-    
+
     }
 
     return results_datalist;
