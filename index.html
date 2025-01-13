@@ -71,18 +71,18 @@
                 <div id="earthquake-details">
                     <div class="data-point">情報を取得中...</div>
                 </div>
-            </div>
-        </div>
+                <div class="panel">
+                    <h2>詳細データ（JSON）</h2>
+                    <textarea id="jsonarea" readonly>取得中...</textarea>
+                </div>
 
-        <div class="panel">
-            <h2>詳細データ（JSON）</h2>
-            <textarea id="jsonarea" readonly>取得中...</textarea>
+            </div>
         </div>
     </main>
 
     <script>
         // 地図の作成
-        const map = L.map('map').setView([0,0], 6); // 東京を初期位置に
+        const map = L.map('map').setView([0, 0], 6); // 東京を初期位置に
 
         // OpenStreetMapタイルレイヤーの追加
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -96,7 +96,9 @@
         function updateMapWithEarthquake(lat, lon, radius, data) {
             // マーカーを更新する部分
             if (earthquakeMarker) {
-                earthquakeMarker.setLatLng([lat, lon]);
+                earthquakeMarker.setLatLng([lat, lon])
+                    .bindPopup(data)
+                    .openPopup();
             } else {
                 earthquakeMarker = L.marker([lat, lon]).addTo(map)
                     .bindPopup(data)
@@ -123,8 +125,8 @@
                 document.getElementById("EEWmusc").play();
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
-                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius/data.SFCD)*100)}%})` || "--";
-                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius/data.SFCD)*100)}%})` || "--";
+                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / data.SFCD) * 100)}%})` || "--";
+                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / data.SFCD) * 100)}%})` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = data.SFCI || "--";
             } else {
@@ -176,11 +178,11 @@
                     { label: "震源の深さ (km)", value: details.depth },
                     { label: "予想最大深度", value: details.calcIntensity },
                     { label: "マグニチュード", value: details.magnitude },
-                    { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD / 8)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius/datas_bords.SFCD)*100)}%) ${details.sRadius}km(約${(Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius/datas_bords.SFCD)*100)}%)` }
+                    { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD / 8)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / datas_bords.SFCD) * 100)}%) ${details.sRadius}km(約${(Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / datas_bords.SFCD) * 100)}%)` }
                 ];
-                
-                if(details.Wave_latitude, details.Wave_longitude){
-                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius,`震央:${details.regionName}(${details.Wave_latitude},${details.Wave_longitude})\n深さ:${details.depth}km\n震央距離:${datas_bords.SFCD}km\n予想最大震度:${details.calcIntensity}\nマグニチュード:${details.magnitude}`);
+
+                if (details.Wave_latitude, details.Wave_longitude) {
+                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius, `地震発生時刻:${details.originTime}\n震央:${details.regionName}(${details.Wave_latitude},${details.Wave_longitude})\n深さ:${details.depth}km\n震央距離:${datas_bords.SFCD}km\n予想最大震度:${details.calcIntensity}\nマグニチュード:${details.magnitude}`);
                 };
                 detailItems.forEach(item => {
                     const div = document.createElement("div");
