@@ -18,10 +18,25 @@ if (navigator.geolocation) {
     console.error("Geolocation is not supported by this browser.");
 }
 
-function notion(text){
- Notification.requestPermission(text)
- const notification = new Notification(text);
-}
+function notion(text) {
+    // 通知の許可をリクエスト
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        // 許可されている場合に通知を表示
+        const notification = new Notification('通知タイトル', {
+          body: text, // 通知の内容
+        });
+  
+        // 通知がクリックされたときのイベントリスナー
+        notification.onclick = () => {
+          console.log('通知がクリックされました');
+        };
+      } else {
+        console.log('通知が拒否されました');
+      }
+    });
+  }
+  
 
 
 function now_time() {
