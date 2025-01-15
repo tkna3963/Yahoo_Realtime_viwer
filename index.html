@@ -129,6 +129,8 @@
                 document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / data.SFCD) * 100)}%})` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = data.SFCI || "--";
+
+                notion(`予想最大震度:${data.yahoo_datas.calcIntensity} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
             } else {
                 document.getElementById("calc-intensity").textContent = "--";
                 document.getElementById("magnitude").textContent = "--";

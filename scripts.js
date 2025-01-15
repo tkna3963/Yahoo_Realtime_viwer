@@ -18,6 +18,12 @@ if (navigator.geolocation) {
     console.error("Geolocation is not supported by this browser.");
 }
 
+function notion(text){
+ Notification.requestPermission(text)
+ const notification = new Notification(text);
+}
+
+
 function now_time() {
     const currentDateTime = new Date();
     return currentDateTime;
