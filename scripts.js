@@ -25,8 +25,7 @@ function notion(text) {
         // 許可されている場合に通知を表示
         const notification = new Notification('通知タイトル', {
           body: text, // 通知の内容
-        });
-  
+        });  
         // 通知がクリックされたときのイベントリスナー
         notification.onclick = () => {
           console.log('通知がクリックされました');

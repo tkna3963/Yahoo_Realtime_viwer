@@ -130,7 +130,7 @@
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = data.SFCI || "--";
 
-                notion(`予想最大震度:${data.yahoo_datas.calcIntensity} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
+                notion(`発表時刻:${data.yahoo_datas.reportTime} 予想最大震度:${data.yahoo_datas.calcIntensity} マグニチュード:${data.yahoo_datas.magnitude} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
             } else {
                 document.getElementById("calc-intensity").textContent = "--";
                 document.getElementById("magnitude").textContent = "--";
@@ -172,8 +172,8 @@
                 const detailItems = [
                     { label: "報告ID", value: details.reportId },
                     { label: "発報番号", value: details.reportNum },
-                    { label: "報告時間", value: details.reportTime },
-                    { label: "地震発生時刻", value: details.originTime },
+                    { label: "報告時間", value: `${details.reportTime}(${calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),parseCustomDate(details.originTime))}秒前)`} ,
+                    { label: "地震発生時刻", value: `${details.originTime}(${calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),parseCustomDate(details.originTime))}秒前)` },
                     { label: "震源地名", value: details.regionName },
                     { label: "緯度経度座標", value: `${details.Wave_latitude},${details.Wave_longitude}` },
                     { label: "震源距離", value: `${datas_bords.SFCD}km` },
