@@ -312,6 +312,21 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     return { intensity, epicenterDistance, surfaceSpeed: parseFloat(surfaceSpeed.toFixed(3)), amplificationFactor };
 }
 
+//Required_files/centersarv.json
+function loadJSON(filePath) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', filePath, false);
+    xhr.send();
+    if (xhr.status === 200) {
+        return JSON.parse(xhr.responseText);
+    } else {
+        console.error('Error loading JSON:', xhr.status, xhr.statusText);
+        return null;
+    }
+}
+
+
+
 
 function datas_bord() {
     const results_datalist = {};
@@ -331,7 +346,7 @@ function datas_bord() {
         var SFCD = Math.round(SFC.epicenterDistance)
         results_datalist.SFCI = SFCI;
         results_datalist.SFCD = SFCD;
-
+        
     }
 
     return results_datalist;
