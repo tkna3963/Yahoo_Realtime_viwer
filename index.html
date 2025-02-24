@@ -114,7 +114,7 @@
 
 
 
-        function mapcolor(AreaSFClist) {
+        function mapcolor(AreaSFClist, Areanamelist) {
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
                 .then(data => {
@@ -130,17 +130,24 @@
                         return acc;
                     }, {});
 
+                    const areaNameMap = data.features.reduce((acc, feature, index) => {
+                        const coords = JSON.stringify(feature.geometry.coordinates);
+                        acc[coords] = Areanamelist[index];  // 同じく地域名を取り出す
+                        return acc;
+                    }, {});
+
                     // GeoJSONをマップに追加（最初の描画）
                     geoLayer = L.geoJSON(data, {
                         style: function (feature) {
                             // `coordinates`をJSON文字列にしてマップから値を取得
                             const featureCoordinates = JSON.stringify(feature.geometry.coordinates);
                             const intensity = areaSFCMap[featureCoordinates] || 0;  // 強度を取得（デフォルトは0）
+                            const areaname = areaNameMap[featureCoordinates] || "不明";  // 地域名を取得
 
                             // 色を決定
                             let fillColor = 'black';  // デフォルトの色
                             if (intensity >= 0) {
-                                fillColor = getColor(intensity);  // AreaSFClistの値が1以上なら黄色
+                                fillColor = "yellow";  // AreaSFClistの値が1以上なら黄色
                             }
 
                             return {
@@ -149,6 +156,16 @@
                                 color: '#4b617d',
                                 fillOpacity: 0.5
                             };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            const featureCoordinates = JSON.stringify(feature.geometry.coordinates);
+                            const intensity = areaSFCMap[featureCoordinates] || 0;  // 強度を取得
+                            const areaname = areaNameMap[featureCoordinates] || "不明";  // 地域名を取得
+
+                            // 地域クリック時の動作
+                            layer.on('click', function () {
+                                alert('地域名: ' + areaname + '\n震度: ' + intensity);
+                            });
                         }
                     }).addTo(map);
 
@@ -161,21 +178,16 @@
                         // 色を更新
                         let fillColor = 'black';  // デフォルトの色
                         if (intensity >= 0) {
-                            fillColor = getColor(intensity);  // AreaSFClistの値が1以上なら黄色
+                            fillColor = getColor(intensity);
                         }
 
                         layer.setStyle({
                             fillColor: fillColor
                         });
                     });
-
                 })
                 .catch(error => console.error('GeoJSONの読み込みに失敗しました:', error));
         }
-
-
-
-
 
         // 地図の作成
         const map = L.map('map').setView([0, 0], 6); // 東京を初期位置に
@@ -232,7 +244,7 @@
                 }).addTo(map);
             }
         }
-        let noticount=0;
+        let noticount = 0;
         function updateCircleInfo(data, details) {
             document.getElementById("max-intensity").textContent = data.MAXseismicIntensity;
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
@@ -243,10 +255,10 @@
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = data.SFCI || "--";
                 noticount++;
-                if(noticount==100){
+                if (noticount == 100) {
                     notion(`発表時刻:${data.yahoo_datas.reportTime} 予想最大震度:${data.yahoo_datas.calcIntensity} マグニチュード:${data.yahoo_datas.magnitude} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
-                }else{
-                    noticount=0;
+                } else {
+                    noticount = 0;
                 }
             } else {
                 document.getElementById("calc-intensity").textContent = "--";
@@ -295,7 +307,7 @@
                     updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius,
                         `地震発生時刻:${details.originTime}\n震央:${details.regionName}(${details.Wave_latitude},${details.Wave_longitude})\n深さ:${details.depth}km\n震央距離:${datas_bords.SFCD}km\n予想最大震度:${details.calcIntensity}\nマグニチュード:${details.magnitude}`);
 
-                    mapcolor(datas_bords.AreaSFClist);
+                    mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist);
                 }
 
                 const detailItems = [

@@ -328,6 +328,7 @@ function loadJSON(filePath) {
 function datas_bord() {
     const results_datalist = {};
     const AreaSFClist=[];
+    const Areanamelist=[];
     const YahooDatas = yahooRealtimeData();
 
 
@@ -356,9 +357,11 @@ function datas_bord() {
                 center.properties.arv
             );
             //AreaSFClist[center.properties.name] = AreaSFC.intensity;
-            AreaSFClist.push(AreaSFC.intensity);    
+            AreaSFClist.push(AreaSFC.intensity);
+            Areanamelist.push(center.properties.name);
         }
         results_datalist.AreaSFClist=AreaSFClist
+        results_datalist.Areanamelist=Areanamelist
     }
 
     return results_datalist;
