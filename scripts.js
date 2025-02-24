@@ -21,21 +21,21 @@ if (navigator.geolocation) {
 function notion(text) {
     // 通知の許可をリクエスト
     Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        // 許可されている場合に通知を表示
-        const notification = new Notification('通知タイトル', {
-          body: text, // 通知の内容
-        });  
-        // 通知がクリックされたときのイベントリスナー
-        notification.onclick = () => {
-          console.log('通知がクリックされました');
-        };
-      } else {
-        console.log('通知が拒否されました');
-      }
+        if (permission === 'granted') {
+            // 許可されている場合に通知を表示
+            const notification = new Notification('通知タイトル', {
+                body: text, // 通知の内容
+            });
+            // 通知がクリックされたときのイベントリスナー
+            notification.onclick = () => {
+                console.log('通知がクリックされました');
+            };
+        } else {
+            console.log('通知が拒否されました');
+        }
     });
-  }
-  
+}
+
 
 
 function now_time() {
@@ -325,12 +325,11 @@ function loadJSON(filePath) {
     }
 }
 
-
-
-
 function datas_bord() {
     const results_datalist = {};
+    const AreaSFClist=[];
     const YahooDatas = yahooRealtimeData();
+
 
     results_datalist.yahoo_datas = YahooDatas;
     results_datalist.seismicIntensityList = YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char));
@@ -346,7 +345,20 @@ function datas_bord() {
         var SFCD = Math.round(SFC.epicenterDistance)
         results_datalist.SFCI = SFCI;
         results_datalist.SFCD = SFCD;
-        
+
+        centers = loadJSON("Required_files/centerARVs.json")
+        for (const center of centers.centers) {
+            const AreaSFC = calculateDistanceAttenuation(
+                YahooDatas.magnitude,
+                YahooDatas.depth,
+                [YahooDatas.Wave_latitude, YahooDatas.Wave_longitude],
+                [center.latitude, center.longitude],
+                center.properties.arv
+            );
+            //AreaSFClist[center.properties.name] = AreaSFC.intensity;
+            AreaSFClist.push(AreaSFC.intensity);    
+        }
+        results_datalist.AreaSFClist=AreaSFClist
     }
 
     return results_datalist;
