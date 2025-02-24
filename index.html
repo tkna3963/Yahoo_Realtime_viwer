@@ -12,7 +12,6 @@
 </head>
 
 <body>
-    <audio src="Required_files/Warning1.mp3" id="EEWmusc"></audio>
     <main>
         <div class="panel">
             <div class="info-card">
@@ -237,7 +236,6 @@
         function updateCircleInfo(data, details) {
             document.getElementById("max-intensity").textContent = data.MAXseismicIntensity;
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
-                document.getElementById("EEWmusc").play();
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
                 document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / data.SFCD) * 100)}%})` || "--";
