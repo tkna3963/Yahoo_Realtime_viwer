@@ -203,20 +203,18 @@
         let currentLocationMarker = null; // 現在地のマーカー
         let xIcon = L.icon({
             iconUrl: 'Required_files/epicenter.png', // ✖の画像のパスを指定
-            iconSize: [20, 20],  // アイコンのサイズ（適切な大きさに調整）
+            iconSize: [30, 30],  // アイコンのサイズ（適切な大きさに調整）
             iconAnchor: [15, 15], // アイコンのアンカー位置（中央に設定）
-            popupAnchor: [0, -15], // ポップアップのアンカー位置
+            popupAnchor: [0, -0], // ポップアップのアンカー位置
         });
 
-        function updateMapWithEarthquake(lat, lon, radius, data) {
+        function updateMapWithEarthquake(lat, lon, radius) {
             // マーカーを更新する部分
             if (earthquakeMarker) {
                 earthquakeMarker.setLatLng([lat, lon], { icon: xIcon, interactive: false })
-                    .bindPopup(data)
                     .openPopup();
             } else {
                 earthquakeMarker = L.marker([lat, lon], { icon: xIcon, interactive: false }).addTo(map)
-                    .bindPopup(data)
                     .openPopup();
             }
 
@@ -304,8 +302,7 @@
                 details = datas_bords.yahoo_datas;
 
                 if (details.Wave_latitude && details.Wave_longitude) {
-                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius,
-                        `地震発生時刻:${details.originTime}\n震央:${details.regionName}(${details.Wave_latitude},${details.Wave_longitude})\n深さ:${details.depth}km\n震央距離:${datas_bords.SFCD}km\n予想最大震度:${details.calcIntensity}\nマグニチュード:${details.magnitude}`);
+                    updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius);
 
                     mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist);
                 }
