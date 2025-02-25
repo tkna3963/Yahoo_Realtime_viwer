@@ -90,7 +90,7 @@
         let previousData = null; // 以前のデータを保存
         let geoLayer = null; // 既存のレイヤーを保持
 
-        function addPointToMap(latitude, longitude, color = 'blue') {
+        function addPointToMap(latitude, longitude, color = 'blue', description = 'ここにポイントがあります') {
             const pointLayer = L.layerGroup().addTo(map);
 
             // 地図にマーカーを追加
@@ -98,10 +98,17 @@
                 color: color,
                 fillColor: color,
                 fillOpacity: 1,
-                radius: 500,// 半径500mの円
+                radius: 500, // 半径500mの円
                 zIndexOffset: 5
             }).addTo(pointLayer);
-                }
+
+            // クリック時に説明を表示する
+            marker.on('click', function () {
+                // ポップアップで説明を表示
+                marker.bindPopup(description).openPopup();
+            });
+        }
+
 
 
         function mapcolor(AreaSFClist, Areanamelist) {
@@ -250,7 +257,7 @@
                 const intensity = data.seismicIntensityList[i];
 
                 if (prevIntensities[i] !== intensity) {
-                    addPointToMap(point[0], point[1], getSeismicColor(intensity));
+                    addPointToMap(point[0], point[1],color=getSeismicColor(intensity),description=`地点:${i}地点目 <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
             }
