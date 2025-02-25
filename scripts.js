@@ -139,6 +139,21 @@ function seismicIntensityConversion(char) {
     }
 }
 
+function getSeismicColor(intensity) {
+    const colorMapping = {
+        "-3": "#71a2cb", "-2.5": "#89afc8", "-2": "#90b3ca",
+        "-1.5": "#97b7cc", "-1": "#97b7cc", "-0.5": "#97b7cc",
+        "0": "#97b7cc", "0.5": "#90b3ca", "1": "#89afc8",
+        "1.5": "#71a2cb", "2": "#5ea7ac", "2.5": "#38a477",
+        "3": "#0fb02b", "3.5": "#f4e200", "4": "#fbc300",
+        "4.5": "#ffaf00", "5": "#f90", "5.5": "#ff7e00",
+        "6": "#ff6200", "6.5": "#fc4c02", "7": "#f53605"
+    };
+
+    return colorMapping[intensity] || "#000"; // 該当なしは黒
+}
+
+
 function getShindoLabel(shindo) {
     if (shindo >= 7) return "7";
     if (shindo >= 6.5) return "6強";

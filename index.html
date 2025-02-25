@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="icon" href="Required_files/epicenter.png">
 </head>
 
 <body>
@@ -89,8 +90,21 @@
         let previousData = null; // 以前のデータを保存
         let geoLayer = null; // 既存のレイヤーを保持
 
+        function addPointToMap(latitude, longitude, color = 'blue') {
+            const pointLayer = L.layerGroup().addTo(map);
+
+            // 地図にマーカーを追加
+            const marker = L.circle([latitude, longitude], {
+                color: color,
+                fillColor: color,
+                fillOpacity: 1,
+                radius: 500,// 半径500mの円
+                zIndexOffset: 5
+            }).addTo(pointLayer);
+                }
+
+
         function mapcolor(AreaSFClist, Areanamelist) {
-            console.log(AreaSFClist);
             document.getElementById("arascalcintensity").textContent = countSeismicIntensity(AreaSFClist) || "なし";
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
@@ -202,8 +216,8 @@
                 earthquakesCircle.setRadius(radius * 1000);  // 円の半径を更新（単位：メートル）
             } else {
                 earthquakesCircle = L.circle([lat, lon], {
-                    color: 'blue',
-                    fillColor: 'blue',
+                    color: 'red',
+                    fillColor: 'red',
                     fillOpacity: 0.2,
                     radius: radius * 1000,  // 半径をメートルに変換
                 }).addTo(map);
@@ -220,9 +234,34 @@
                 }).addTo(map);
             }
         }
+
+        let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
+        let prevIntensities = new Array(Poinsts.length).fill(null); // 初回はすべてnullで初期化
+
+        function updatepinMap(data) {
+            const Slist = data.seismicIntensityList.length;
+
+            if (!prevIntensities || prevIntensities.length !== Slist) {
+                prevIntensities = new Array(Slist).fill(null); // 初回実行時またはデータサイズ変更時に初期化
+            }
+
+            for (let i = 0; i < Math.min(Poinsts.length, Slist); i++) {
+                const point = Poinsts[i];
+                const intensity = data.seismicIntensityList[i];
+
+                if (prevIntensities[i] !== intensity) {
+                    addPointToMap(point[0], point[1], getSeismicColor(intensity));
+                    prevIntensities[i] = intensity; // 最新のデータを記録
+                }
+            }
+        }
+
+
         let noticount = 0;
         function updateCircleInfo(data, details) {
             document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
+            updatepinMap(data)
+
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
@@ -314,8 +353,9 @@
 
             document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
             updateCircleInfo(datas_bords, details);
-        }
 
+
+        }
         setInterval(main, 1000);  // 1秒ごとに実行
     </script>
 </body>
