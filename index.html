@@ -244,7 +244,8 @@
 
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let prevIntensities = new Array(Poinsts.length).fill(null); // 初回はすべてnullで初期化
-
+        
+        let redPin = L.marker([0,0]).addTo(map);
         function updatepinMap(data) {
             const Slist = data.seismicIntensityList.length;
 
@@ -252,16 +253,37 @@
                 prevIntensities = new Array(Slist).fill(null); // 初回実行時またはデータサイズ変更時に初期化
             }
 
+            let maxIntensity = -1; // 最大震度を追跡
+            let maxIntensityIndex = -1; // 最大震度の地点のインデックスを追跡
+
+            // 震度が一番高い地点を探す
+            for (let i = 0; i < Slist; i++) {
+                const intensity = data.seismicIntensityList[i];
+                if (intensity > maxIntensity) {
+                    maxIntensity = intensity;
+                    maxIntensityIndex = i;
+                }
+            }
+
+            // 最大震度の地点をマップに追加
+            if (maxIntensityIndex !== -1) {
+                const maxPoint = Poinsts[maxIntensityIndex];
+                redPin.setLatLng([maxPoint[0], maxPoint[1]]);
+            }
+
+
+            // 各地点の震度をチェックして、変化があればマップに追加
             for (let i = 0; i < Math.min(Poinsts.length, Slist); i++) {
                 const point = Poinsts[i];
                 const intensity = data.seismicIntensityList[i];
 
                 if (prevIntensities[i] !== intensity) {
-                    addPointToMap(point[0], point[1],color=getSeismicColor(intensity),description=`地点:${i}地点目 <br>震度:${intensity}`);
+                    addPointToMap(point[0], point[1], color = getSeismicColor(intensity), description = `地点:${i + 1} <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
             }
         }
+
 
 
         let noticount = 0;
