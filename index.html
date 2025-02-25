@@ -25,7 +25,7 @@
                     <value id="location">取得中...</value>
                 </div>
                 <div class="data-point">
-                    <input id="time_machine">
+                    <input id="time_machine" type="datetime-local">
                 </div>
 
                 <div class="intensity-info">
@@ -57,6 +57,10 @@
                     <div class="info-item">S波: <span id="s-radius">--</span>
                     </div>
                 </div>
+                <div class="info-item">
+                    <span class="label">各地の予想震度:</span>
+                    <span class="value" id="arascalcintensity">--</span>
+                </div>
             </div>
         </div>
 
@@ -84,37 +88,10 @@
 
         let previousData = null; // 以前のデータを保存
         let geoLayer = null; // 既存のレイヤーを保持
-        function getColor(shindo) {
-            let color;
-
-            if (shindo >= 7) {
-                color = "#800080"; // 震度7: 紫 (NHKの配色)
-            } else if (shindo >= 6.5) {
-                color = "#8B0000"; // 震度6強: ダークレッド (強い揺れ)
-            } else if (shindo >= 6) {
-                color = "#FF0000"; // 震度6弱: レッド (強い揺れ)
-            } else if (shindo >= 5.5) {
-                color = "#FF4500"; // 震度5強: オレンジレッド (やや強い揺れ)
-            } else if (shindo >= 5) {
-                color = "#FFA500"; // 震度5弱: オレンジ (やや強い揺れ)
-            } else if (shindo >= 4) {
-                color = "#FFFF00"; // 震度4: イエロー (中程度)
-            } else if (shindo >= 3) {
-                color = "#00FF00"; // 震度3: グリーン (弱い揺れ)
-            } else if (shindo >= 2) {
-                color = "#ADD8E6"; // 震度2: ライトブルー (非常に弱い揺れ)
-            } else if (shindo >= 1) {
-                color = "#FFFFFF"; // 震度1: ホワイト (ほとんど感じない揺れ)
-            } else {
-                color = "#FFFFFF"; // 震度0以下: ホワイト (揺れなし)
-            }
-
-            return color;
-        }
-
-
 
         function mapcolor(AreaSFClist, Areanamelist) {
+            console.log(AreaSFClist);
+            document.getElementById("arascalcintensity").textContent = countSeismicIntensity(AreaSFClist) || "なし";
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
                 .then(data => {
@@ -188,6 +165,7 @@
                 })
                 .catch(error => console.error('GeoJSONの読み込みに失敗しました:', error));
         }
+        mapcolor([0], ["不明"]);
 
         // 地図の作成
         const map = L.map('map').setView([0, 0], 6); // 東京を初期位置に
@@ -203,9 +181,9 @@
         let currentLocationMarker = null; // 現在地のマーカー
         let xIcon = L.icon({
             iconUrl: 'Required_files/epicenter.png', // ✖の画像のパスを指定
-            iconSize: [30, 30],  // アイコンのサイズ（適切な大きさに調整）
-            iconAnchor: [15, 15], // アイコンのアンカー位置（中央に設定）
-            popupAnchor: [0, -0], // ポップアップのアンカー位置
+            iconSize: [20, 20],  // アイコンのサイズ（適切な大きさに調整）
+            iconAnchor: [9, 9], // アイコンのアンカー位置（中央に設定）
+            popupAnchor: [0, 0], // ポップアップのアンカー位置
         });
 
         function updateMapWithEarthquake(lat, lon, radius) {
@@ -244,14 +222,14 @@
         }
         let noticount = 0;
         function updateCircleInfo(data, details) {
-            document.getElementById("max-intensity").textContent = data.MAXseismicIntensity;
+            document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
                 document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / data.SFCD) * 100)}%})` || "--";
                 document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / data.SFCD) * 100)}%})` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
-                document.getElementById("calclocate-intensity").textContent = data.SFCI || "--";
+                document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
                 noticount++;
                 if (noticount == 100) {
                     notion(`発表時刻:${data.yahoo_datas.reportTime} 予想最大震度:${data.yahoo_datas.calcIntensity} マグニチュード:${data.yahoo_datas.magnitude} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
@@ -265,6 +243,7 @@
                 document.getElementById("s-radius").textContent = "--";
                 document.getElementById("reportNum").textContent = "--";
                 document.getElementById("calclocate-intensity").textContent = "--";
+                document.getElementById("arascalcintensity").textContent = "--";
             }
         }
 
@@ -305,6 +284,8 @@
                     updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius);
 
                     mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist);
+                } else {
+                    updateMapWithEarthquake(0, 0, 0);
                 }
 
                 const detailItems = [

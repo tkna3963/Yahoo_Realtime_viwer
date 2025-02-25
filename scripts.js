@@ -139,6 +139,76 @@ function seismicIntensityConversion(char) {
     }
 }
 
+function getShindoLabel(shindo) {
+    if (shindo >= 7) return "7";
+    if (shindo >= 6.5) return "6強";
+    if (shindo >= 6) return "6弱";
+    if (shindo >= 5.5) return "5強";
+    if (shindo >= 5) return "5弱";
+    if (shindo >= 4) return "4";
+    if (shindo >= 3) return "3";
+    if (shindo >= 2) return "2";
+    if (shindo >= 1) return "1";
+    return "0";
+}
+
+
+function getColor(shindo) {
+    let color;
+
+    if (shindo >= 7) {
+        color = "#800080"; // 震度7: 紫 (NHKの配色)
+    } else if (shindo >= 6.5) {
+        color = "#8B0000"; // 震度6強: ダークレッド (強い揺れ)
+    } else if (shindo >= 6) {
+        color = "#FF0000"; // 震度6弱: レッド (強い揺れ)
+    } else if (shindo >= 5.5) {
+        color = "#FF4500"; // 震度5強: オレンジレッド (やや強い揺れ)
+    } else if (shindo >= 5) {
+        color = "#FFA500"; // 震度5弱: オレンジ (やや強い揺れ)
+    } else if (shindo >= 4) {
+        color = "#FFFF00"; // 震度4: イエロー (中程度)
+    } else if (shindo >= 3) {
+        color = "#00FF00"; // 震度3: グリーン (弱い揺れ)
+    } else if (shindo >= 2) {
+        color = "#ADD8E6"; // 震度2: ライトブルー (非常に弱い揺れ)
+    } else if (shindo >= 1) {
+        color = "#FFFFFF"; // 震度1: ホワイト (ほとんど感じない揺れ)
+    } else {
+        color = "#FFFFFF"; // 震度0以下: ホワイト (揺れなし)
+    }
+
+    return color;
+}
+
+function countSeismicIntensity(data) {
+    const bins = {
+        "震度7": 0, "震度6強": 0, "震度6弱": 0, "震度5強": 0,
+        "震度5弱": 0, "震度4": 0, "震度3": 0,
+        "震度2": 0, "震度1": 0, "震度0": 0
+    };
+
+    data.forEach(value => {
+        let shindo;
+        if (value >= 7.0) shindo = "震度7";
+        else if (value >= 6.5) shindo = "震度6強";
+        else if (value >= 6.0) shindo = "震度6弱";
+        else if (value >= 5.5) shindo = "震度5強";
+        else if (value >= 5.0) shindo = "震度5弱";
+        else if (value >= 4.0) shindo = "震度4";
+        else if (value >= 3.0) shindo = "震度3";
+        else if (value >= 2.0) shindo = "震度2";
+        else if (value >= 1.0) shindo = "震度1";
+        else shindo = "震度0";
+
+        bins[shindo]++;
+    });
+
+    return Object.entries(bins)
+        .filter(([_, count]) => count > 0) // ０件のやつを除外
+        .map(([key, count]) => ` --${key}:${count}地域--\n\n`);
+}
+
 function Yahoo_locate_data() {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', 'https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json', false); // 同期的リクエスト
@@ -327,8 +397,8 @@ function loadJSON(filePath) {
 
 function datas_bord() {
     const results_datalist = {};
-    const AreaSFClist=[];
-    const Areanamelist=[];
+    const AreaSFClist = [];
+    const Areanamelist = [];
     const YahooDatas = yahooRealtimeData();
 
 
@@ -360,8 +430,8 @@ function datas_bord() {
             AreaSFClist.push(AreaSFC.intensity);
             Areanamelist.push(center.properties.name);
         }
-        results_datalist.AreaSFClist=AreaSFClist
-        results_datalist.Areanamelist=Areanamelist
+        results_datalist.AreaSFClist = AreaSFClist
+        results_datalist.Areanamelist = Areanamelist
     }
 
     return results_datalist;
