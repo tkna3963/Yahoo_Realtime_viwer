@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>リアルタイム地震情報</title>
+    <title>Yahooリアルタイム開発者地震情報</title>
     <script src="scripts.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -26,7 +26,7 @@
                     <value id="location">取得中...</value>
                 </div>
                 <div class="data-point">
-                    <input id="time_machine" type="datetime-local">
+                    <input id="time_machine">
                 </div>
 
                 <div class="intensity-info">
@@ -92,6 +92,7 @@
 
         function addPointToMap(latitude, longitude, color = 'blue', description = 'ここにポイントがあります') {
             const pointLayer = L.layerGroup().addTo(map);
+            pointLayer.clearLayers()
 
             // 地図にマーカーを追加
             const marker = L.circle([latitude, longitude], {
@@ -189,11 +190,11 @@
         mapcolor([0], ["不明"]);
 
         // 地図の作成
-        const map = L.map('map').setView([0, 0], 6); // 東京を初期位置に
+        const map = L.map('map').setView([35.689, 139.692], 6); // 東京を初期位置に
 
         // OpenStreetMapタイルレイヤーの追加
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
         }).addTo(map);
 
         let earthquakeMarker = null;  // マーカーを格納する変数
@@ -244,10 +245,15 @@
 
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let prevIntensities = new Array(Poinsts.length).fill(null); // 初回はすべてnullで初期化
-        
-        let redPin = L.marker([0,0]).addTo(map);
+        let redPin = L.marker([0, 0]).addTo(map);
+        let prevMax = { index: -1, intensity: -1 };
+
         function updatepinMap(data) {
             const Slist = data.seismicIntensityList.length;
+
+            if (Poinsts.length !== Slist) {
+                return;
+            }
 
             if (!prevIntensities || prevIntensities.length !== Slist) {
                 prevIntensities = new Array(Slist).fill(null); // 初回実行時またはデータサイズ変更時に初期化
@@ -265,12 +271,19 @@
                 }
             }
 
-            // 最大震度の地点をマップに追加
+            // 最大震度の地点に変化があったときだけマップに更新
             if (maxIntensityIndex !== -1) {
-                const maxPoint = Poinsts[maxIntensityIndex];
-                redPin.setLatLng([maxPoint[0], maxPoint[1]]);
-            }
+                if (prevMax.index !== maxIntensityIndex || prevMax.intensity !== maxIntensity) {
+                    const maxPoint = Poinsts[maxIntensityIndex];
+                    redPin.setLatLng([maxPoint[0], maxPoint[1]]);
+                    redPin.bindPopup(`地点番号: ${maxIntensityIndex + 1} <br>強震震度: ${getShindoLabel(maxIntensity)}`, { autoPan: false });
+                    redPin.openPopup(); // 変更があった場合のみポップアップを表示
 
+                    // 差分更新を記録
+                    prevMax.index = maxIntensityIndex;
+                    prevMax.intensity = maxIntensity;
+                }
+            }
 
             // 各地点の震度をチェックして、変化があればマップに追加
             for (let i = 0; i < Math.min(Poinsts.length, Slist); i++) {
@@ -278,7 +291,7 @@
                 const intensity = data.seismicIntensityList[i];
 
                 if (prevIntensities[i] !== intensity) {
-                    addPointToMap(point[0], point[1], color = getSeismicColor(intensity), description = `地点:${i + 1} <br>震度:${intensity}`);
+                    addPointToMap(point[0], point[1], getSeismicColor(intensity), `地点:${i + 1} <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
             }

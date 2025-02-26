@@ -12,7 +12,7 @@ if (navigator.geolocation) {
     }, {
         enableHighAccuracy: true,
         maximumAge: 0,
-        timeout: 5000
+        timeout:1000
     });
 } else {
     console.error("Geolocation is not supported by this browser.");
@@ -155,16 +155,16 @@ function getSeismicColor(intensity) {
 
 
 function getShindoLabel(shindo) {
-    if (shindo >= 7) return "7";
-    if (shindo >= 6.5) return "6強";
-    if (shindo >= 6) return "6弱";
-    if (shindo >= 5.5) return "5強";
-    if (shindo >= 5) return "5弱";
-    if (shindo >= 4) return "4";
-    if (shindo >= 3) return "3";
-    if (shindo >= 2) return "2";
-    if (shindo >= 1) return "1";
-    return "0";
+    if (shindo < 0.5) return "0";
+    if (shindo < 1.5) return "1";
+    if (shindo < 2.5) return "2";
+    if (shindo < 3.5) return "3";
+    if (shindo < 4.5) return "4";
+    if (shindo < 5.0) return "5弱";
+    if (shindo < 5.5) return "5強";
+    if (shindo < 6.0) return "6弱";
+    if (shindo < 6.5) return "6強";
+    return "7";
 }
 
 
@@ -200,7 +200,7 @@ function countSeismicIntensity(data) {
     const bins = {
         "震度7": 0, "震度6強": 0, "震度6弱": 0, "震度5強": 0,
         "震度5弱": 0, "震度4": 0, "震度3": 0,
-        "震度2": 0, "震度1": 0, "震度0": 0
+        "震度2": 0, "震度1": 0
     };
 
     data.forEach(value => {
@@ -214,7 +214,6 @@ function countSeismicIntensity(data) {
         else if (value >= 3.0) shindo = "震度3";
         else if (value >= 2.0) shindo = "震度2";
         else if (value >= 1.0) shindo = "震度1";
-        else shindo = "震度0";
 
         bins[shindo]++;
     });
