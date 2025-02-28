@@ -63,7 +63,7 @@
                     </div>
                 </div>
                 <div class="info-item">
-                    <span class="label">P-S時間:</span>
+                    <span class="label">予想現在地P-S時間:</span>
                     <span class="value" id="P-Stime" style="font-family: 'DSEG7', sans-serif;">--</span>
                 </div>
                 
@@ -186,7 +186,7 @@
 
                             // 地域クリック時の動作
                             layer.on('click', function () {
-                                alert('地域名: ' + areaname + '\n震度: ' + intensity + "\nArv:"+Arv + "\n距離:"+Math.round(DBL)+"km 残り"+(Math.round(DBL / 4))+"秒");
+                                alert('地域名: ' + areaname + '\n震度: ' + intensity + "\nArv:"+Arv + "\n距離:"+Math.round(DBL)+"km");
                             });
                         }
                     }).addTo(map);
@@ -335,7 +335,7 @@
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
                 document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
-                document.getElementById("P-Stime").textContent = `${Math.round(data.SFCD / 8)}秒` || "--";
+                document.getElementById("P-Stime").textContent = `約${Math.round(data.SFCD / 8)}秒` || "--";
                 noticount++;
                 if (noticount == 100) {
                     notion(`発表時刻:${data.yahoo_datas.reportTime} 予想最大震度:${data.yahoo_datas.calcIntensity} マグニチュード:${data.yahoo_datas.magnitude} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
