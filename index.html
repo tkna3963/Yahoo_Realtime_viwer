@@ -52,12 +52,21 @@
                     <span class="label">M</span>
                     <span class="value" id="magnitude" style="font-family: 'DSEG7', sans-serif;">--</span>
                 </div>
+                <div class="info-item">
+                    <span class="label">   震央距離:</span>
+                    <span class="value" id="Epicentral-distance" style="font-family: 'DSEG7', sans-serif;">--</span>
+                </div>
                 <div class="wave-info">
                     <div class="info-item">P波: <span id="p-radius" style="font-family: 'DSEG7', sans-serif;">--</span>
                     </div>
                     <div class="info-item">S波: <span id="s-radius" style="font-family: 'DSEG7', sans-serif;">--</span>
                     </div>
                 </div>
+                <div class="info-item">
+                    <span class="label">P-S時間:</span>
+                    <span class="value" id="P-Stime" style="font-family: 'DSEG7', sans-serif;">--</span>
+                </div>
+                
                 <div class="info-item">
                     <span class="label">各地の予想震度:</span>
                     <span class="value" id="arascalcintensity">--</span>
@@ -110,7 +119,7 @@
             });
         }
 
-        function mapcolor(AreaSFClist, Areanamelist,Arvlist) {
+        function mapcolor(AreaSFClist, Areanamelist,Arvlist,DBLlist) {
             document.getElementById("arascalcintensity").textContent = countSeismicIntensity(AreaSFClist) || "なし";
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
@@ -136,6 +145,12 @@
                     const ArvMap = data.features.reduce((acc, feature, index) => {
                         const coords = JSON.stringify(feature.geometry.coordinates);
                         acc[coords] = Arvlist[index];  // 同じく地域名を取り出す
+                        return acc;
+                    }, {});
+
+                    const DBLMap = data.features.reduce((acc, feature, index) => {
+                        const coords = JSON.stringify(feature.geometry.coordinates);
+                        acc[coords] = DBLlist[index];  // 同じく地域名を取り出す
                         return acc;
                     }, {});
 
@@ -167,9 +182,11 @@
                             const intensity = areaSFCMap[featureCoordinates] || 0;  // 強度を取得
                             const areaname = areaNameMap[featureCoordinates] || "不明";  // 地域名を取得
                             const Arv = ArvMap[featureCoordinates] || 0;
+                            const DBL = DBLMap[featureCoordinates] || 0;
+
                             // 地域クリック時の動作
                             layer.on('click', function () {
-                                alert('地域名: ' + areaname + '\n震度: ' + intensity + "\nArv:"+Arv);
+                                alert('地域名: ' + areaname + '\n震度: ' + intensity + "\nArv:"+Arv + "\n距離:"+Math.round(DBL)+"km 残り"+(Math.round(DBL / 4))+"秒");
                             });
                         }
                     }).addTo(map);
@@ -193,7 +210,7 @@
                 })
                 .catch(error => console.error('GeoJSONの読み込みに失敗しました:', error));
         }
-        mapcolor([0], ["不明"],[0]);
+        mapcolor([0], ["不明"],[0],[0]);
 
         // 地図の作成
         const map = L.map('map').setView([35.689, 139.692], 6); // 東京を初期位置に
@@ -317,6 +334,8 @@
                 document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / data.SFCD) * 100)}%})` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
+                document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
+                document.getElementById("P-Stime").textContent = `${Math.round(data.SFCD / 8)}秒` || "--";
                 noticount++;
                 if (noticount == 100) {
                     notion(`発表時刻:${data.yahoo_datas.reportTime} 予想最大震度:${data.yahoo_datas.calcIntensity} マグニチュード:${data.yahoo_datas.magnitude} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
@@ -370,7 +389,7 @@
                 if (details.Wave_latitude && details.Wave_longitude) {
                     updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius);
 
-                    mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist,datas_bords.Arvlist);
+                    mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist,datas_bords.Arvlist,datas_bords.DBLlist);
                 } else {
                     updateMapWithEarthquake(0, 0, 0);
                     

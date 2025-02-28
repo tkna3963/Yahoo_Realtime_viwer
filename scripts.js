@@ -445,10 +445,12 @@ function datas_bord() {
             AreaSFClist.push(AreaSFC.intensity);
             Areanamelist.push(center.properties.name);
             Arvlist.push(center.properties.arv);
+            DBLlist.push(AreaSFC.epicenterDistance);
         }
         results_datalist.AreaSFClist = AreaSFClist
         results_datalist.Areanamelist = Areanamelist
         results_datalist.Arvlist = Arvlist
+        results_datalist.DBLlist = DBLlist
     }
 
     return results_datalist;
