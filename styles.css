@@ -97,6 +97,7 @@ main {
 .data-point value {
     color: var(--text-primary);
     font-family: 'Consolas', monospace;
+    font-family: 'DSEG7', sans-serif;
 }
 
 /* Status indicators */
@@ -156,7 +157,8 @@ table {
     font-size: 13px;
 }
 
-th, td {
+th,
+td {
     padding: 8px;
     text-align: left;
     border-bottom: 1px solid var(--border);
@@ -206,7 +208,8 @@ th {
         color: black;
     }
 
-    .panel, .info-card {
+    .panel,
+    .info-card {
         border: 1px solid #ccc;
         box-shadow: none;
         break-inside: avoid;
@@ -221,7 +224,8 @@ th {
 textarea,
 .textarea {
     width: 100%;
-    max-width: 100%; /* Ensure width does not exceed parent */
+    max-width: 100%;
+    /* Ensure width does not exceed parent */
     min-height: 120px;
     background: var(--background);
     color: var(--text-primary);
@@ -312,6 +316,7 @@ textarea::placeholder {
 
 /* Responsive adjustments for textarea */
 @media (max-width: 768px) {
+
     textarea,
     .textarea {
         font-size: 12px;
@@ -325,10 +330,20 @@ textarea::placeholder {
 
 /* Print styles for textarea */
 @media print {
+
     textarea,
     .textarea {
         border: 1px solid #ccc;
         background: white;
         color: black;
     }
+}
+
+/*https://www.keshikan.net/fonts.html*/
+@font-face {
+    font-family: 'DSEG7';
+    src: url('Required_files/DSEG7Classic-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    unicode-range: U+30-49;
 }

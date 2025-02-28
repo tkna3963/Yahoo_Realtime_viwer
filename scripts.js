@@ -413,6 +413,8 @@ function datas_bord() {
     const results_datalist = {};
     const AreaSFClist = [];
     const Areanamelist = [];
+    const Arvlist = [];
+    const DBLlist=[];
     const YahooDatas = yahooRealtimeData();
 
 
@@ -440,12 +442,13 @@ function datas_bord() {
                 [center.latitude, center.longitude],
                 center.properties.arv
             );
-            //AreaSFClist[center.properties.name] = AreaSFC.intensity;
             AreaSFClist.push(AreaSFC.intensity);
             Areanamelist.push(center.properties.name);
+            Arvlist.push(center.properties.arv);
         }
         results_datalist.AreaSFClist = AreaSFClist
         results_datalist.Areanamelist = Areanamelist
+        results_datalist.Arvlist = Arvlist
     }
 
     return results_datalist;
