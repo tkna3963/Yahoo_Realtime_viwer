@@ -72,6 +72,7 @@
                     <span class="label">各地の予想震度:</span>
                     <span class="value" id="arascalcintensity">--</span>
                 </div>
+                <button onclick="openSubWindow()">Kyoushin_Moniter</button>
             </div>
         </div>
 
@@ -204,7 +205,7 @@
                 })
                 .catch(error => console.error('GeoJSONの読み込みに失敗しました:', error));
         }
-        
+
         mapcolor([0], ["不明"], [0], [0]);
 
         // 地図の作成
@@ -322,8 +323,6 @@
             }
         }
 
-
-
         let noticount = 0;
         function updateCircleInfo(data, details) {
             document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
@@ -429,6 +428,15 @@
 
         }
         setInterval(main, 1000);  // 1秒ごとに実行
+    </script>
+
+    <script>
+        function openImage(src) {
+            window.open(src, "_blank", "width=600, height=400");
+        }
+        function openSubWindow() {
+            window.open("sub_window.html", "_blank", "width=342px, height=440px");
+        }
     </script>
 </body>
 

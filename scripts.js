@@ -230,7 +230,7 @@ function countSeismicIntensity(data) {
     const bins = {
         "震度7": 0, "震度6強": 0, "震度6弱": 0, "震度5強": 0,
         "震度5弱": 0, "震度4": 0, "震度3": 0,
-        "震度2": 0, "震度1": 0, "震度0": 0
+        "震度2": 0, "震度1": 0
     };
 
     data.forEach(value => {
