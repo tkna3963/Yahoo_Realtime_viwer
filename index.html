@@ -41,7 +41,8 @@
                     </div>
                     <div class="info-item">
                         <span class="label">現在地予想震度</span>
-                        <span class="value" id="calclocate-intensity" style="font-family: 'DSEG7', sans-serif;">--</span>
+                        <span class="value" id="calclocate-intensity"
+                            style="font-family: 'DSEG7', sans-serif;">--</span>
                     </div>
                     <div class="info-item">
                         <span class="label">予想最大震度</span>
@@ -53,7 +54,7 @@
                     <span class="value" id="magnitude" style="font-family: 'DSEG7', sans-serif;">--</span>
                 </div>
                 <div class="info-item">
-                    <span class="label">   震央距離:</span>
+                    <span class="label"> 震央距離:</span>
                     <span class="value" id="Epicentral-distance" style="font-family: 'DSEG7', sans-serif;">--</span>
                 </div>
                 <div class="wave-info">
@@ -66,7 +67,7 @@
                     <span class="label">予想現在地P-S時間:</span>
                     <span class="value" id="P-Stime" style="font-family: 'DSEG7', sans-serif;">--</span>
                 </div>
-                
+
                 <div class="info-item">
                     <span class="label">各地の予想震度:</span>
                     <span class="value" id="arascalcintensity">--</span>
@@ -119,7 +120,7 @@
             });
         }
 
-        function mapcolor(AreaSFClist, Areanamelist,Arvlist,DBLlist) {
+        function mapcolor(AreaSFClist, Areanamelist, Arvlist, DBLlist) {
             document.getElementById("arascalcintensity").textContent = countSeismicIntensity(AreaSFClist) || "なし";
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
@@ -128,34 +129,27 @@
                     if (geoLayer) {
                         geoLayer.clearLayers();  // レイヤー内の既存要素をクリア
                     }
-
                     // GeoJSONデータの`coordinates`を事前に集めてインデックス化する
                     const areaSFCMap = data.features.reduce((acc, feature, index) => {
                         const coords = JSON.stringify(feature.geometry.coordinates);
                         acc[coords] = AreaSFClist[index];
                         return acc;
                     }, {});
-
                     const areaNameMap = data.features.reduce((acc, feature, index) => {
                         const coords = JSON.stringify(feature.geometry.coordinates);
                         acc[coords] = Areanamelist[index];  // 同じく地域名を取り出す
                         return acc;
                     }, {});
-
                     const ArvMap = data.features.reduce((acc, feature, index) => {
                         const coords = JSON.stringify(feature.geometry.coordinates);
                         acc[coords] = Arvlist[index];  // 同じく地域名を取り出す
                         return acc;
                     }, {});
-
                     const DBLMap = data.features.reduce((acc, feature, index) => {
                         const coords = JSON.stringify(feature.geometry.coordinates);
                         acc[coords] = DBLlist[index];  // 同じく地域名を取り出す
                         return acc;
                     }, {});
-
-                    
-
                     // GeoJSONをマップに追加（最初の描画）
                     geoLayer = L.geoJSON(data, {
                         style: function (feature) {
@@ -186,9 +180,10 @@
 
                             // 地域クリック時の動作
                             layer.on('click', function () {
-                                alert('地域名: ' + areaname + '\n震度: ' + intensity + "\nArv:"+Arv + "\n距離:"+Math.round(DBL)+"km");
+                                alert('地域名: ' + areaname + '\n震度: ' + getShindoLabel(intensity) + "(" + intensity + ")" + "\nArv:" + Arv + "\n距離:" + Math.round(DBL) + "km");
                             });
                         }
+
                     }).addTo(map);
 
                     // 強度の変化に合わせて色を更新する部分
@@ -202,7 +197,6 @@
                         if (intensity >= 0) {
                             fillColor = getColor(intensity);
                         }
-
                         layer.setStyle({
                             fillColor: fillColor
                         });
@@ -210,7 +204,8 @@
                 })
                 .catch(error => console.error('GeoJSONの読み込みに失敗しました:', error));
         }
-        mapcolor([0], ["不明"],[0],[0]);
+        
+        mapcolor([0], ["不明"], [0], [0]);
 
         // 地図の作成
         const map = L.map('map').setView([35.689, 139.692], 6); // 東京を初期位置に
@@ -317,7 +312,7 @@
                     addPointToMap(point[0], point[1], getSeismicColor(intensity), `地点:${i + 1} <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
-            }       
+            }
         }
 
 
@@ -391,10 +386,10 @@
                 if (details.Wave_latitude && details.Wave_longitude) {
                     updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius);
 
-                    mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist,datas_bords.Arvlist,datas_bords.DBLlist);
+                    mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist);
                 } else {
                     updateMapWithEarthquake(0, 0, 0);
-                    
+
                 }
 
                 const detailItems = [

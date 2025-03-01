@@ -12,7 +12,7 @@ if (navigator.geolocation) {
     }, {
         enableHighAccuracy: true,
         maximumAge: 0,
-        timeout:1000
+        timeout: 1000
     });
 } else {
     console.error("Geolocation is not supported by this browser.");
@@ -154,6 +154,7 @@ function getSeismicColor(intensity) {
 }
 
 
+// 震度をラベルで返す関数（基準を未満に統一）
 function getShindoLabel(shindo) {
     if (shindo < 0.5) return "0";
     if (shindo < 1.5) return "1";
@@ -167,61 +168,64 @@ function getShindoLabel(shindo) {
     return "7";
 }
 
-
+// 震度に対応する色を返す関数（基準を未満に統一）
 function getColor(shindo) {
     let color;
 
-    if (shindo >= 7) {
-        color = "#800080"; // 震度7: 紫 (NHKの配色)
-    } else if (shindo >= 6.5) {
-        color = "#8B0000"; // 震度6強: ダークレッド (強い揺れ)
-    } else if (shindo >= 6) {
-        color = "#FF0000"; // 震度6弱: レッド (強い揺れ)
-    } else if (shindo >= 5.5) {
-        color = "#FF4500"; // 震度5強: オレンジレッド (やや強い揺れ)
-    } else if (shindo >= 5) {
-        color = "#FFA500"; // 震度5弱: オレンジ (やや強い揺れ)
-    } else if (shindo >= 4) {
-        color = "#FFFF00"; // 震度4: イエロー (中程度)
-    } else if (shindo >= 3) {
-        color = "#00FF00"; // 震度3: グリーン (弱い揺れ)
-    } else if (shindo >= 2) {
-        color = "#ADD8E6"; // 震度2: ライトブルー (非常に弱い揺れ)
-    } else if (shindo >= 1) {
-        color = "#FFFFFF"; // 震度1: ホワイト (ほとんど感じない揺れ)
-    } else {
-        color = "#FFFFFF"; // 震度0以下: ホワイト (揺れなし)
+    if (shindo < 0.5) {
+        color = "#FFFFFF"; // 震度0: 白
+    } else if (shindo < 1.5) {
+        color = "#ADADAD"; // 震度1: グレー
+    } else if (shindo < 2.5) {
+        color = "#0066CC"; // 震度2: 青
+    } else if (shindo < 3.5) {
+        color = "#00A652"; // 震度3: 緑
+    } else if (shindo < 4.5) {
+        color = "#E6C300"; // 震度4: 黄色/金
+    } else if (shindo < 5.0) {
+        color = "#DC6B00"; // 震度5弱: オレンジ
+    } else if (shindo < 5.5) {
+        color = "#DC6B00"; // 震度5強: オレンジ (同じ色で表示)
+    } else if (shindo < 6.0) {
+        color = "#E33977"; // 震度6弱: ピンク/マゼンタ
+    } else if (shindo < 6.5) {
+        color = "#E33977"; // 震度6強: ピンク/マゼンタ (同じ色で表示)
+    } else if(shindo <= 6.5){
+        color = "#5D1799"; // 震度7: 紫
     }
 
     return color;
 }
 
+// 震度データを受け取り、震度別に地域数をカウントする関数
 function countSeismicIntensity(data) {
     const bins = {
         "震度7": 0, "震度6強": 0, "震度6弱": 0, "震度5強": 0,
         "震度5弱": 0, "震度4": 0, "震度3": 0,
-        "震度2": 0, "震度1": 0
+        "震度2": 0, "震度1": 0, "震度0": 0
     };
 
     data.forEach(value => {
         let shindo;
-        if (value >= 7.0) shindo = "震度7";
-        else if (value >= 6.5) shindo = "震度6強";
-        else if (value >= 6.0) shindo = "震度6弱";
-        else if (value >= 5.5) shindo = "震度5強";
-        else if (value >= 5.0) shindo = "震度5弱";
-        else if (value >= 4.0) shindo = "震度4";
-        else if (value >= 3.0) shindo = "震度3";
-        else if (value >= 2.0) shindo = "震度2";
-        else if (value >= 1.0) shindo = "震度1";
+        if (value < 0.5) shindo = "震度0";
+        else if (value < 1.5) shindo = "震度1";
+        else if (value < 2.5) shindo = "震度2";
+        else if (value < 3.5) shindo = "震度3";
+        else if (value < 4.5) shindo = "震度4";
+        else if (value < 5.0) shindo = "震度5弱";
+        else if (value < 5.5) shindo = "震度5強";
+        else if (value < 6.0) shindo = "震度6弱";
+        else if (value < 6.5) shindo = "震度6強";
+        else if (value <= 6.5) shindo = "震度7";
 
         bins[shindo]++;
     });
 
     return Object.entries(bins)
-        .filter(([_, count]) => count > 0) // ０件のやつを除外
+        .filter(([_, count]) => count > 0) // 0件の震度を除外
         .map(([key, count]) => ` --${key}:${count}地域--\n\n`);
 }
+
 
 function Yahoo_locate_data() {
     const xhr = new XMLHttpRequest();
@@ -414,7 +418,7 @@ function datas_bord() {
     const AreaSFClist = [];
     const Areanamelist = [];
     const Arvlist = [];
-    const DBLlist=[];
+    const DBLlist = [];
     const YahooDatas = yahooRealtimeData();
 
 
@@ -440,11 +444,11 @@ function datas_bord() {
                 YahooDatas.depth,
                 [YahooDatas.Wave_latitude, YahooDatas.Wave_longitude],
                 [center.latitude, center.longitude],
-                center.properties.arv
+                Number(center.properties.arv)
             );
             AreaSFClist.push(AreaSFC.intensity);
             Areanamelist.push(center.properties.name);
-            Arvlist.push(center.properties.arv);
+            Arvlist.push(Number(center.properties.arv));
             DBLlist.push(AreaSFC.epicenterDistance);
         }
         results_datalist.AreaSFClist = AreaSFClist
