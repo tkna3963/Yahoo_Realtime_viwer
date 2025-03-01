@@ -8,61 +8,58 @@
     <style>
         body {
             background-color: black;
-            /* 背景色を青に変更 */
         }
 
         .image-container {
+            position: relative;
             display: inline-block;
-            margin-right: 10px;
             width: 100%;
-            /* 固定サイズ */
             height: auto;
-            /* 固定サイズ */
             background-image: url('https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/CommonImg/base_map_w.gif');
             background-size: contain;
-            /* 画像のアスペクト比を保って表示 */
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
+            z-index: 100;
         }
 
         .image-container img {
             display: block;
             width: 100%;
-            /* 親要素に合わせて画像サイズを自動調整 */
             height: 100%;
-            /* 親要素に合わせて画像サイズを自動調整 */
         }
 
-        /* モーダルのスタイル */
-        .modal {
-            display: none;
-            /* 初めは非表示 */
-            position: fixed;
-            z-index: 1;
-            left: 0;
+        /* EEWのレイヤーが最上部 */
+        .eew-overlay {
+            position: absolute;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            /* 背景の半透明 */
+            z-index: 3;
+            /* EEWが一番上に表示される */
         }
 
-        .modal-content {
-            margin: 10% auto;
-            display: block;
-            max-width: 80%;
-            max-height: 80%;
-        }
-
-        .close {
+        /* Kyoushin_S_Urlのレイヤー */
+        .kyoushin-overlay {
             position: absolute;
-            top: 15px;
-            right: 35px;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            /* Kyoushin_S_UrlがEEWの下に表示される */
+        }
+
+        /* Shindoのレイヤーは最前面 */
+        .shindo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Shindoが一番下に表示される */
         }
     </style>
 </head>
@@ -73,36 +70,39 @@
     </div>
     <div id="images">
         <div class="image-container">
-            <img id="imgKyoushin" alt="Kyoushin S">
+            <img id="imgEEW1" class="eew-overlay" alt="EEW" loading="lazy">
+            <img id="imgKyoushin" alt="Kyoushin S" loading="lazy">
+            <img id="imgShindo1" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
         <div class="image-container">
-            <img id="imgTyoushuki"  alt="Tyoushuki">
+            <img id="imgEEW2" class="eew-overlay" alt="EEW" loading="lazy">
+            <img id="imgTyoushuki" alt="Tyoushuki" loading="lazy">
+            <img id="imgShindo2" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
         <div class="image-container">
-            <img id="imgPGA" alt="PGA">
+            <img id="imgEEW3" class="eew-overlay" alt="EEW" loading="lazy">
+            <img id="imgPGA" alt="PGA" loading="lazy">
+            <img id="imgShindo3" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
         <div class="image-container">
-            <img id="imgPGV" alt="PGV">
+            <img id="imgEEW4" class="eew-overlay" alt="EEW" loading="lazy">
+            <img id="imgPGV" alt="PGV" loading="lazy">
+            <img id="imgShindo4" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
         <div class="image-container">
-            <img id="imgPGD" alt="PGD">
+            <img id="imgEEW5" class="eew-overlay" alt="EEW" loading="lazy">
+            <img id="imgPGD" alt="PGD" loading="lazy">
+            <img id="imgShindo5" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
-    </div>
-
-    <!-- モーダルのHTML -->
-    <div id="myModal" class="modal">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <img class="modal-content" id="modalImage">
+        <div class="image-container">
+            <img id="imgEEW6" class="eew-overlay" alt="EEW" loading="lazy">
+            <img id="imgShindo6" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
+        </div>
     </div>
 
     <script>
-        function updateSliderValue(value) {
-            document.getElementById("slider-value").textContent = value;
-        }
-
         function now_time() {
-            currentDateTime = new Date();
-            return currentDateTime;
+            return new Date();
         }
 
         function padZero(value) {
@@ -119,34 +119,19 @@
             return `${year}${month}${date}/${year}${month}${date}${hours}${minutes}${seconds}`;
         }
 
-        function formatYahooTimeDate(dateString, timeZone = 'Asia/Tokyo') {
-            const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: timeZone };
-            const date = new Date(dateString);
-            const formatter = new Intl.DateTimeFormat('ja-JP', options);
-            const formattedDate = formatter.format(date);
-            const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
-            return formattedDate.replace(/\//g, '年').replace(' ', `日(${dayOfWeek}曜日) `).replace(':', '時').replace(':', '分') + '秒';
-        }
-
         function Kyoushin_moniter_url() {
-            now_time_date = now_time();
-            set_time = new Date(now_time_date.getTime() - 3 * 1000);
-            url_time_date = Yahoo_Time_date_fromat(set_time);
-
-            const Kyoushin_S_Url = `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${url_time_date}.jma_s.gif`;
-            const Tyoushuki_Url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`;
-            const PGA_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`;
-            const PGV_Url = `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/vcmap_s/${url_time_date}.vcmap_s.gif`;
-            const PGD_Url = `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/dcmap_s/${url_time_date}.dcmap_s.gif`;
-            const EEW_URL=`http://www.kmoni.bosai.go.jp/data/map_img/PSWaveImg/eew/${url_time_date}.eew.gif`;
-
+            const now_time_date = now_time();
+            const set_time = new Date(now_time_date.getTime() - 3 * 1000);
+            const url_time_date = Yahoo_Time_date_fromat(set_time);
+            //2024/202403/20240303123456
             return {
-                "Kyoushin_S_Url": Kyoushin_S_Url,
-                "Tyoushuki_Url": Tyoushuki_Url,
-                "PGA_Url": PGA_Url,
-                "PGV_Url": PGV_Url,
-                "PGD_Url": PGD_Url,
-                "EEW_URL":EEW_URL
+                "Kyoushin_S_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${url_time_date}.jma_s.gif`,
+                "Tyoushuki_Url": `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`,
+                "PGA_Url": `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`,
+                "PGV_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/vcmap_s/${url_time_date}.vcmap_s.gif`,
+                "PGD_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/dcmap_s/${url_time_date}.dcmap_s.gif`,
+                "EEW_URL": `http://www.kmoni.bosai.go.jp/data/map_img/PSWaveImg/eew/20240101/20240101161024.eew.gif`,
+                "shindo": `http://www.kmoni.bosai.go.jp/data/map_img/EstShindoImg/eew/20240101/20240101161024.eew.gif`
             };
         }
 
@@ -157,34 +142,21 @@
             document.getElementById('imgPGA').src = urls.PGA_Url;
             document.getElementById('imgPGV').src = urls.PGV_Url;
             document.getElementById('imgPGD').src = urls.PGD_Url;
+            document.querySelectorAll('.eew-overlay').forEach(img => img.src = urls.EEW_URL);
+            document.querySelectorAll('.shindo-overlay').forEach(img => img.src = urls.shindo); // Shindo画像も更新
 
-            console.log(urls);
+        }
+
+        function updateSliderValue(value) {
+            // スライダーの値を表示する処理を追加する場合は、ここに記述
         }
 
         function updateImages() {
             const sliderValue = document.getElementById('imageSlider').value;
             const images = document.querySelectorAll('.image-container');
             images.forEach((image, index) => {
-                if (index < sliderValue) {
-                    image.style.display = 'block';
-                } else {
-                    image.style.display = 'none';
-                }
+                image.style.display = index < sliderValue ? 'block' : 'none';
             });
-        }
-
-        // モーダルを開く
-        function openImage(src) {
-            const modal = document.getElementById("myModal");
-            const modalImage = document.getElementById("modalImage");
-            modal.style.display = "block";
-            modalImage.src = src;
-        }
-
-        // モーダルを閉じる
-        function closeModal() {
-            const modal = document.getElementById("myModal");
-            modal.style.display = "none";
         }
 
         document.getElementById('imageSlider').addEventListener('input', updateImages);
