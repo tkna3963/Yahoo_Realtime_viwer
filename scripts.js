@@ -153,6 +153,34 @@ function getSeismicColor(intensity) {
     return colorMapping[intensity] || "#000"; // 該当なしは黒
 }
 
+function getSeismicImage(intensity) {
+    let result;
+    const numIntensity = parseFloat(intensity); // intensityを数値に変換
+
+    if (numIntensity < 0.5) {
+        result = "Required_files/Shindo0.png"; // 震度0: 該当なし
+    } else if (numIntensity < 1.5) {
+        result = "Required_files/Shindo1.png"; // 震度1
+    } else if (numIntensity < 2.5) {
+        result = "Required_files/Shindo2.png"; // 震度2
+    } else if (numIntensity < 3.5) {
+        result = "Required_files/Shindo3.png"; // 震度3
+    } else if (numIntensity < 4.5) {
+        result = "Required_files/Shindo4.png"; // 震度4
+    } else if (numIntensity < 5.0) {
+        result = "Required_files/Shindo5-.png"; // 震度5弱
+    } else if (numIntensity < 5.5) {
+        result = "Required_files/Shindo5+.png"; // 震度5強
+    } else if (numIntensity < 6.0) {
+        result = "Required_files/Shindo6-.png"; // 震度6弱
+    } else if (numIntensity < 6.5) {
+        result = "Required_files/Shindo6+.png"; // 震度6強
+    } else {
+        result = "Required_files/Shindo7.png"; // 震度7
+    }
+
+    return result;
+}
 
 // 震度をラベルで返す関数（基準を未満に統一）
 function getShindoLabel(shindo) {
