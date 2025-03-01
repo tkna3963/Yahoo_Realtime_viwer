@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyoushin</title>
-    <link rel="stylesheet" href="test.css">
     <style>
         body {
             background-color: black;
@@ -70,17 +69,23 @@
 
 <body>
     <div id="slider-container">
-        <input type="range" id="imageSlider" min="1" max="4" value="1" onchange="updateSliderValue(this.value)">
+        <input type="range" id="imageSlider" min="1" max="5" value="1" onchange="updateSliderValue(this.value)">
     </div>
     <div id="images">
         <div class="image-container">
-            <img id="imgKyoushin" src="kyoushin_s.jpg" alt="Kyoushin S">
+            <img id="imgKyoushin" alt="Kyoushin S">
         </div>
         <div class="image-container">
-            <img id="imgTyoushuki" src="tyoushuki.jpg" alt="Tyoushuki">
+            <img id="imgTyoushuki"  alt="Tyoushuki">
         </div>
         <div class="image-container">
-            <img id="imgPGA" src="pga.jpg" alt="PGA">
+            <img id="imgPGA" alt="PGA">
+        </div>
+        <div class="image-container">
+            <img id="imgPGV" alt="PGV">
+        </div>
+        <div class="image-container">
+            <img id="imgPGD" alt="PGD">
         </div>
     </div>
 
@@ -127,13 +132,21 @@
             now_time_date = now_time();
             set_time = new Date(now_time_date.getTime() - 3 * 1000);
             url_time_date = Yahoo_Time_date_fromat(set_time);
+
             const Kyoushin_S_Url = `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${url_time_date}.jma_s.gif`;
             const Tyoushuki_Url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`;
             const PGA_Url = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`;
+            const PGV_Url = `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/vcmap_s/${url_time_date}.vcmap_s.gif`;
+            const PGD_Url = `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/dcmap_s/${url_time_date}.dcmap_s.gif`;
+            const EEW_URL=`http://www.kmoni.bosai.go.jp/data/map_img/PSWaveImg/eew/${url_time_date}.eew.gif`;
+
             return {
                 "Kyoushin_S_Url": Kyoushin_S_Url,
                 "Tyoushuki_Url": Tyoushuki_Url,
-                "PGA_Url": PGA_Url
+                "PGA_Url": PGA_Url,
+                "PGV_Url": PGV_Url,
+                "PGD_Url": PGD_Url,
+                "EEW_URL":EEW_URL
             };
         }
 
@@ -142,6 +155,9 @@
             document.getElementById('imgKyoushin').src = urls.Kyoushin_S_Url;
             document.getElementById('imgTyoushuki').src = urls.Tyoushuki_Url;
             document.getElementById('imgPGA').src = urls.PGA_Url;
+            document.getElementById('imgPGV').src = urls.PGV_Url;
+            document.getElementById('imgPGD').src = urls.PGD_Url;
+
             console.log(urls);
         }
 
