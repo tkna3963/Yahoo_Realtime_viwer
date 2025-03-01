@@ -123,15 +123,15 @@
             const now_time_date = now_time();
             const set_time = new Date(now_time_date.getTime() - 3 * 1000);
             const url_time_date = Yahoo_Time_date_fromat(set_time);
-            //2024/202403/20240303123456
+            //20240101/20240101161024
             return {
                 "Kyoushin_S_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${url_time_date}.jma_s.gif`,
                 "Tyoushuki_Url": `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`,
                 "PGA_Url": `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`,
                 "PGV_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/vcmap_s/${url_time_date}.vcmap_s.gif`,
                 "PGD_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/dcmap_s/${url_time_date}.dcmap_s.gif`,
-                "EEW_URL": `http://www.kmoni.bosai.go.jp/data/map_img/PSWaveImg/eew/20240101/20240101161024.eew.gif`,
-                "shindo": `http://www.kmoni.bosai.go.jp/data/map_img/EstShindoImg/eew/20240101/20240101161024.eew.gif`
+                "EEW_URL": `http://www.kmoni.bosai.go.jp/data/map_img/PSWaveImg/eew/${url_time_date}.eew.gif`,
+                "shindo": `http://www.kmoni.bosai.go.jp/data/map_img/EstShindoImg/eew/${url_time_date}.eew.gif`
             };
         }
 
