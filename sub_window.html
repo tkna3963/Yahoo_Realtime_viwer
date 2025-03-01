@@ -8,31 +8,37 @@
     <link rel="stylesheet" href="test.css">
     <style>
         body {
-            background-color: white;
+            background-color: black;
+            /* 背景色を青に変更 */
         }
 
         .image-container {
             display: inline-block;
             margin-right: 10px;
-        }
-
-        .image-container img {
-            display: block;
-            max-width: 100%;
+            width: 352px;
+            /* 固定サイズ */
             height: auto;
-        }
-
-        .image-container {
+            /* 固定サイズ */
             background-image: url('https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/CommonImg/base_map_w.gif');
-            background-size: cover;
+            background-size: contain;
+            /* 画像のアスペクト比を保って表示 */
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
         }
 
+        .image-container img {
+            display: block;
+            width: 100%;
+            /* 親要素に合わせて画像サイズを自動調整 */
+            height: 100%;
+            /* 親要素に合わせて画像サイズを自動調整 */
+        }
+
         /* モーダルのスタイル */
         .modal {
-            display: none; /* 初めは非表示 */
+            display: none;
+            /* 初めは非表示 */
             position: fixed;
             z-index: 1;
             left: 0;
@@ -40,7 +46,8 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5); /* 背景の半透明 */
+            background-color: rgba(0, 0, 0, 0.5);
+            /* 背景の半透明 */
         }
 
         .modal-content {
@@ -54,12 +61,10 @@
             position: absolute;
             top: 15px;
             right: 35px;
-            color: #fff;
             font-size: 40px;
             font-weight: bold;
             cursor: pointer;
         }
-
     </style>
 </head>
 
@@ -69,7 +74,7 @@
     </div>
     <div id="images">
         <div class="image-container">
-            <img id="imgKyoushin" src="kyoushin_b.jpg" alt="Kyoushin B" onclick="openImage(this.src)">
+            <img id="imgKyoushin" src="kyoushin_s.jpg" alt="Kyoushin S" onclick="openImage(this.src)">
         </div>
         <div class="image-container">
             <img id="imgTyoushuki" src="tyoushuki.jpg" alt="Tyoushuki" onclick="openImage(this.src)">
