@@ -66,105 +66,70 @@
 
 <body>
     <div id="slider-container">
-        <input type="range" id="imageSlider" min="1" max="5" value="1" onchange="updateSliderValue(this.value)">
+        <input type="range" id="imageSlider" min="1" max="2" value="1" onchange="updateSliderValue(this.value)">
     </div>
     <div id="images">
         <div class="image-container">
-            <img id="imgEEW1" class="eew-overlay" alt="EEW" loading="lazy">
-            <img id="imgKyoushin" alt="Kyoushin S" loading="lazy">
-            <img id="imgShindo1" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
-        </div>
-        <div class="image-container">
-            <img id="imgEEW2" class="eew-overlay" alt="EEW" loading="lazy">
             <img id="imgTyoushuki" alt="Tyoushuki" loading="lazy">
-            <img id="imgShindo2" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
         <div class="image-container">
-            <img id="imgEEW3" class="eew-overlay" alt="EEW" loading="lazy">
             <img id="imgPGA" alt="PGA" loading="lazy">
-            <img id="imgShindo3" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
         </div>
-        <div class="image-container">
-            <img id="imgEEW4" class="eew-overlay" alt="EEW" loading="lazy">
-            <img id="imgPGV" alt="PGV" loading="lazy">
-            <img id="imgShindo4" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
-        </div>
-        <div class="image-container">
-            <img id="imgEEW5" class="eew-overlay" alt="EEW" loading="lazy">
-            <img id="imgPGD" alt="PGD" loading="lazy">
-            <img id="imgShindo5" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
-        </div>
-        <div class="image-container">
-            <img id="imgEEW6" class="eew-overlay" alt="EEW" loading="lazy">
-            <img id="imgShindo6" class="shindo-overlay" alt="Shindo" loading="lazy"> <!-- Shindo画像追加 -->
-        </div>
-    </div>
 
-    <script>
-        function now_time() {
-            return new Date();
-        }
+        <script>
+            function now_time() {
+                return new Date();
+            }
 
-        function padZero(value) {
-            return value < 10 ? '0' + value : value;
-        }
+            function padZero(value) {
+                return value < 10 ? '0' + value : value;
+            }
 
-        function Yahoo_Time_date_fromat(dateTime) {
-            const year = dateTime.getFullYear();
-            const month = padZero(dateTime.getMonth() + 1);
-            const date = padZero(dateTime.getDate());
-            const hours = padZero(dateTime.getHours());
-            const minutes = padZero(dateTime.getMinutes());
-            const seconds = padZero(dateTime.getSeconds());
-            return `${year}${month}${date}/${year}${month}${date}${hours}${minutes}${seconds}`;
-        }
+            function Yahoo_Time_date_fromat(dateTime) {
+                const year = dateTime.getFullYear();
+                const month = padZero(dateTime.getMonth() + 1);
+                const date = padZero(dateTime.getDate());
+                const hours = padZero(dateTime.getHours());
+                const minutes = padZero(dateTime.getMinutes());
+                const seconds = padZero(dateTime.getSeconds());
+                return `${year}${month}${date}/${year}${month}${date}${hours}${minutes}${seconds}`;
+            }
 
-        function Kyoushin_moniter_url() {
-            const now_time_date = now_time();
-            const set_time = new Date(now_time_date.getTime() - 3 * 1000);
-            const url_time_date = Yahoo_Time_date_fromat(set_time);
-            //20240101/20240101161024
-            return {
-                "Kyoushin_S_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${url_time_date}.jma_s.gif`,
-                "Tyoushuki_Url": `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`,
-                "PGA_Url": `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`,
-                "PGV_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/vcmap_s/${url_time_date}.vcmap_s.gif`,
-                "PGD_Url": `http://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/dcmap_s/${url_time_date}.dcmap_s.gif`,
-                "EEW_URL": `http://www.kmoni.bosai.go.jp/data/map_img/PSWaveImg/eew/${url_time_date}.eew.gif`,
-                "shindo": `http://www.kmoni.bosai.go.jp/data/map_img/EstShindoImg/eew/${url_time_date}.eew.gif`
-            };
-        }
+            function Kyoushin_moniter_url() {
+                const now_time_date = now_time();
+                const set_time = new Date(now_time_date.getTime() - 3 * 1000);
+                const url_time_date = Yahoo_Time_date_fromat(set_time);
+                //20240101/20240101161024
+                return {
+                    "Tyoushuki_Url": `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s/${url_time_date}.abrspmx_s.gif`,
+                    "PGA_Url": `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/acmap_s/${url_time_date}.acmap_s.gif`,
+                };
+            }
 
-        function Update() {
-            const urls = Kyoushin_moniter_url();
-            document.getElementById('imgKyoushin').src = urls.Kyoushin_S_Url;
-            document.getElementById('imgTyoushuki').src = urls.Tyoushuki_Url;
-            document.getElementById('imgPGA').src = urls.PGA_Url;
-            document.getElementById('imgPGV').src = urls.PGV_Url;
-            document.getElementById('imgPGD').src = urls.PGD_Url;
-            document.querySelectorAll('.eew-overlay').forEach(img => img.src = urls.EEW_URL);
-            document.querySelectorAll('.shindo-overlay').forEach(img => img.src = urls.shindo); // Shindo画像も更新
+            function Update() {
+                const urls = Kyoushin_moniter_url();
+                document.getElementById('imgTyoushuki').src = urls.Tyoushuki_Url;
+                document.getElementById('imgPGA').src = urls.PGA_Url;
+            }
 
-        }
+            function updateSliderValue(value) {
+                // スライダーの値を表示する処理を追加する場合は、ここに記述
+            }
 
-        function updateSliderValue(value) {
-            // スライダーの値を表示する処理を追加する場合は、ここに記述
-        }
+            function updateImages() {
+                const sliderValue = document.getElementById('imageSlider').value;
+                const images = document.querySelectorAll('.image-container');
+                images.forEach((image, index) => {
+                    image.style.display = index < sliderValue ? 'block' : 'none';
+                });
+            }
 
-        function updateImages() {
-            const sliderValue = document.getElementById('imageSlider').value;
-            const images = document.querySelectorAll('.image-container');
-            images.forEach((image, index) => {
-                image.style.display = index < sliderValue ? 'block' : 'none';
-            });
-        }
+            document.getElementById('imageSlider').addEventListener('input', updateImages);
 
-        document.getElementById('imageSlider').addEventListener('input', updateImages);
-
-        Update();
-        setInterval(Update, 1000);
-        updateImages();
-    </script>
+            Update();
+            setInterval(Update, 1000);
+            updateImages();
+        </script>
 </body>
 
 </html>
