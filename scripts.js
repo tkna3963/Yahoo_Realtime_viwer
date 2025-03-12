@@ -452,24 +452,56 @@ function loadFile(filePath) {
     }
 }
 
+const cache = new Map(); // キャッシュ用
+
+// ハーバーサインの公式で距離を計算
+function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371; // 地球の半径 (km)
+    const toRad = Math.PI / 180;
+    let dLat = (lat2 - lat1) * toRad;
+    let dLon = (lon2 - lon1) * toRad;
+    
+    let a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2;
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+    return R * c; // 距離 (km)
+}
+
+// KMデータを最初の1回だけロード
+let KM_data = null;
+function loadKMData() {
+    if (!KM_data) {
+        KM_data = loadFile("Required_files/sitepub_all_sj.csv");
+    }
+}
+
+// 近い地点を検索
 function YM_KM_C(latitude, longitude) {
-    const KM_data = loadFile("Required_files/sitepub_all_sj.csv"); // KM_data の読み込み
+    let cacheKey = `${latitude},${longitude}`;
+    if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+    }
+
+    loadKMData(); // 1回だけデータをロード
+
     let min_dist = Infinity;
     let closest_site = null;
+
     for (let km of KM_data) {
-        let km_lat = parseFloat(km[3]); // KM_data の緯度
-        let km_lon = parseFloat(km[4]); // KM_data の経度
-        if (isNaN(km_lat) || isNaN(km_lon)) continue; // 緯度経度が NaN の場合はスキップ
-        // ユークリッド距離を計算
-        let dist = Math.sqrt((latitude - km_lat) ** 2 + (longitude - km_lon) ** 2);
-        // 最小距離を更新
+        let km_lat = parseFloat(km[3]);
+        let km_lon = parseFloat(km[4]);
+        if (isNaN(km_lat) || isNaN(km_lon)) continue;
+
+        let dist = haversine(latitude, longitude, km_lat, km_lon);
+
         if (dist < min_dist) {
             min_dist = dist;
-            closest_site = km; // 一番近い地点を更新
+            closest_site = km;
         }
     }
+
     if (closest_site) {
-        return {
+        let result = {
             latitude: latitude,
             longitude: longitude,
             closest_KM_site: closest_site[2],
@@ -477,6 +509,8 @@ function YM_KM_C(latitude, longitude) {
             KM_lon: closest_site[4],
             distance: min_dist
         };
+        cache.set(cacheKey, result);
+        return result;
     } else {
         console.log("近い地点が見つかりませんでした");
         return null;
