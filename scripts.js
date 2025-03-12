@@ -420,86 +420,58 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     return { intensity, epicenterDistance, surfaceSpeed: parseFloat(surfaceSpeed.toFixed(3)), amplificationFactor };
 }
 
-//Required_files/centersarv.json
-function loadFile(filePath) {
+function loadJSON(filePath) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', filePath, false);
     xhr.send();
-
-    if (xhr.status !== 200) {
-        console.error('Error loading file:', xhr.status, xhr.statusText);
+    if (xhr.status === 200) {
+        return JSON.parse(xhr.responseText);
+    } else {
+        console.error('Error loading JSON:', xhr.status, xhr.statusText);
         return null;
     }
+}
 
-    const extension = filePath.split('.').pop().toLowerCase();
-    const responseText = xhr.responseText;
-
-    switch (extension) {
-        case 'json':
-            try {
-                return JSON.parse(responseText);
-            } catch (e) {
-                console.error('Invalid JSON format:', e);
-                return null;
-            }
-        case 'csv':
-            return responseText.split('\n').map(row => row.split(','));
-        case 'txt':
-            return responseText;
-        default:
-            console.warn('Unsupported file type:', extension);
-            return responseText; // 一応そのまま返す
+function loadCSV(filePath) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', filePath, false); // 同期リクエスト
+    xhr.send();
+    
+    if (xhr.status === 200) {
+        return xhr.responseText; // そのまま返す
+    } else {
+        console.error('Error loading CSV:', xhr.status, xhr.statusText);
+        return null;
     }
 }
+
 
 const cache = new Map(); // キャッシュ用
 
-// ハーバーサインの公式で距離を計算
-function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371; // 地球の半径 (km)
-    const toRad = Math.PI / 180;
-    let dLat = (lat2 - lat1) * toRad;
-    let dLon = (lon2 - lon1) * toRad;
-    
-    let a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2;
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    
-    return R * c; // 距離 (km)
-}
-
-// KMデータを最初の1回だけロード
 let KM_data = null;
 function loadKMData() {
     if (!KM_data) {
-        KM_data = loadFile("Required_files/sitepub_all_sj.csv");
+        KM_data = loadCSV("Required_files/sitepub_all_sj.csv");
     }
 }
-
-// 近い地点を検索
 function YM_KM_C(latitude, longitude) {
     let cacheKey = `${latitude},${longitude}`;
     if (cache.has(cacheKey)) {
         return cache.get(cacheKey);
     }
-
-    loadKMData(); // 1回だけデータをロード
-
+    loadKMData();
     let min_dist = Infinity;
     let closest_site = null;
-
     for (let km of KM_data) {
         let km_lat = parseFloat(km[3]);
         let km_lon = parseFloat(km[4]);
         if (isNaN(km_lat) || isNaN(km_lon)) continue;
-
-        let dist = haversine(latitude, longitude, km_lat, km_lon);
-
+        let dist = calculateDistance([latitude, longitude], [km_lat, km_lon]);
         if (dist < min_dist) {
             min_dist = dist;
             closest_site = km;
         }
     }
-
     if (closest_site) {
         let result = {
             latitude: latitude,
@@ -516,7 +488,6 @@ function YM_KM_C(latitude, longitude) {
         return null;
     }
 }
-
 
 function datas_bord() {
     const results_datalist = {};

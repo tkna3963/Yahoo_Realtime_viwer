@@ -262,7 +262,7 @@
             }
         }
 
-        let Poinsts = loadFile("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
+        let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let prevIntensities = new Array(Poinsts.length).fill(null); // 初回はすべてnullで初期化
         let PIN = L.marker([0, 0]).addTo(map);
         let prevMax = { index: -1, intensity: -1 };
