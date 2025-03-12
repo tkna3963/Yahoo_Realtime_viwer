@@ -454,29 +454,21 @@ function loadFile(filePath) {
 
 function YM_KM_C(latitude, longitude) {
     const KM_data = loadFile("Required_files/sitepub_all_sj.csv"); // KM_data の読み込み
-    console.log(KM_data); // デバッグ用
-
     let min_dist = Infinity;
     let closest_site = null;
-
     for (let km of KM_data) {
         let km_lat = parseFloat(km[3]); // KM_data の緯度
         let km_lon = parseFloat(km[4]); // KM_data の経度
-
         if (isNaN(km_lat) || isNaN(km_lon)) continue; // 緯度経度が NaN の場合はスキップ
-
         // ユークリッド距離を計算
         let dist = Math.sqrt((latitude - km_lat) ** 2 + (longitude - km_lon) ** 2);
-
         // 最小距離を更新
         if (dist < min_dist) {
             min_dist = dist;
             closest_site = km; // 一番近い地点を更新
         }
     }
-
     if (closest_site) {
-        console.log(`最も近い地点: ${closest_site[2]} (${closest_site[3]}, ${closest_site[4]})`);
         return {
             latitude: latitude,
             longitude: longitude,

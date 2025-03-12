@@ -317,8 +317,8 @@
                 const intensity = data.seismicIntensityList[i];
 
                 if (prevIntensities[i] !== intensity) {
-                    addPointToMap(point[0], point[1], getSeismicColor(intensity), `地点:${i + 1} <br>震度:${intensity}`);
-                    YM_KM_C(point[0], point[1])
+                    const YM_KM_C_data=YM_KM_C(point[0], point[1])
+                    addPointToMap(YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon, getSeismicColor(intensity), `地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
             }
