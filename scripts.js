@@ -218,7 +218,7 @@ function getColor(shindo) {
         color = "#E33977"; // 震度6弱: ピンク/マゼンタ
     } else if (shindo < 6.5) {
         color = "#E33977"; // 震度6強: ピンク/マゼンタ (同じ色で表示)
-    } else if(shindo <= 6.5){
+    } else if (shindo <= 6.5) {
         color = "#5D1799"; // 震度7: 紫
     }
 
@@ -397,16 +397,12 @@ function surfaceGroundInformationProvisionAPI(現在地緯度, 現在地経度) 
 function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLocation, amplificationFactor) {
     // マグニチュード (Mw) の計算
     const magW = magJMA - 0.171;
-
     // 断層長（半径）の計算
     const faultRadius = 10 ** (0.5 * magW - 1.85) / 2;
-
     // 震央からの距離の計算
     const epicenterDistance = calculateDistance(epicenterLocation, pointLocation);
-
     // 震源からの距離を計算（最小値3km）
     const hypocenterDistance = Math.max(Math.sqrt(depth ** 2 + epicenterDistance ** 2) - faultRadius, 3);
-
     // 工学基盤上の最大速度（Vs = 600 m/s）を計算
     const maxSpeed600 = 10 ** (
         0.58 * magW +
@@ -414,32 +410,87 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
         Math.log10(hypocenterDistance + 0.0028 * 10 ** (0.5 * magW)) -
         0.002 * hypocenterDistance
     );
-
     // 基盤の速度（Vs = 400 m/s）の変換
     const maxSpeed400 = maxSpeed600 * 1.31;
-
     // 増幅率を使って最終的な速度を計算
     const surfaceSpeed = maxSpeed400 * amplificationFactor;
-
     // 震度を計算
     const intensity = parseFloat((2.68 + 1.72 * Math.log10(surfaceSpeed)).toFixed(2));
-
     // 結果を返す（震度、震央からの距離、最大速度、増幅率）
     return { intensity, epicenterDistance, surfaceSpeed: parseFloat(surfaceSpeed.toFixed(3)), amplificationFactor };
 }
 
 //Required_files/centersarv.json
-function loadJSON(filePath) {
+function loadFile(filePath) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', filePath, false);
     xhr.send();
-    if (xhr.status === 200) {
-        return JSON.parse(xhr.responseText);
+
+    if (xhr.status !== 200) {
+        console.error('Error loading file:', xhr.status, xhr.statusText);
+        return null;
+    }
+
+    const extension = filePath.split('.').pop().toLowerCase();
+    const responseText = xhr.responseText;
+
+    switch (extension) {
+        case 'json':
+            try {
+                return JSON.parse(responseText);
+            } catch (e) {
+                console.error('Invalid JSON format:', e);
+                return null;
+            }
+        case 'csv':
+            return responseText.split('\n').map(row => row.split(','));
+        case 'txt':
+            return responseText;
+        default:
+            console.warn('Unsupported file type:', extension);
+            return responseText; // 一応そのまま返す
+    }
+}
+
+function YM_KM_C(latitude, longitude) {
+    const KM_data = loadFile("Required_files/sitepub_all_sj.csv"); // KM_data の読み込み
+    console.log(KM_data); // デバッグ用
+
+    let min_dist = Infinity;
+    let closest_site = null;
+
+    for (let km of KM_data) {
+        let km_lat = parseFloat(km[3]); // KM_data の緯度
+        let km_lon = parseFloat(km[4]); // KM_data の経度
+
+        if (isNaN(km_lat) || isNaN(km_lon)) continue; // 緯度経度が NaN の場合はスキップ
+
+        // ユークリッド距離を計算
+        let dist = Math.sqrt((latitude - km_lat) ** 2 + (longitude - km_lon) ** 2);
+
+        // 最小距離を更新
+        if (dist < min_dist) {
+            min_dist = dist;
+            closest_site = km; // 一番近い地点を更新
+        }
+    }
+
+    if (closest_site) {
+        console.log(`最も近い地点: ${closest_site[2]} (${closest_site[3]}, ${closest_site[4]})`);
+        return {
+            latitude: latitude,
+            longitude: longitude,
+            closest_KM_site: closest_site[2],
+            KM_lat: closest_site[3],
+            KM_lon: closest_site[4],
+            distance: min_dist
+        };
     } else {
-        console.error('Error loading JSON:', xhr.status, xhr.statusText);
+        console.log("近い地点が見つかりませんでした");
         return null;
     }
 }
+
 
 function datas_bord() {
     const results_datalist = {};
@@ -487,3 +538,4 @@ function datas_bord() {
 
     return results_datalist;
 }
+
