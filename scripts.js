@@ -420,6 +420,7 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     return { intensity, epicenterDistance, surfaceSpeed: parseFloat(surfaceSpeed.toFixed(3)), amplificationFactor };
 }
 
+
 function loadJSON(filePath) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', filePath, false);
@@ -432,13 +433,14 @@ function loadJSON(filePath) {
     }
 }
 
+
 function loadCSV(filePath) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', filePath, false); // 同期リクエスト
     xhr.send();
     
     if (xhr.status === 200) {
-        return xhr.responseText; // そのまま返す
+        return xhr.responseText.split('\n').map(row => row.split(','));; // そのまま返す
     } else {
         console.error('Error loading CSV:', xhr.status, xhr.statusText);
         return null;
