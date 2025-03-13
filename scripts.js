@@ -36,8 +36,6 @@ function notion(text) {
     });
 }
 
-
-
 function now_time() {
     const currentDateTime = new Date();
     return currentDateTime;
@@ -151,35 +149,6 @@ function getSeismicColor(intensity) {
     };
 
     return colorMapping[intensity] || "#000"; // 該当なしは黒
-}
-
-function getSeismicImage(intensity) {
-    let result;
-    const numIntensity = parseFloat(intensity); // intensityを数値に変換
-
-    if (numIntensity < 0.5) {
-        result = "Required_files/Shindo0.png"; // 震度0: 該当なし
-    } else if (numIntensity < 1.5) {
-        result = "Required_files/Shindo1.png"; // 震度1
-    } else if (numIntensity < 2.5) {
-        result = "Required_files/Shindo2.png"; // 震度2
-    } else if (numIntensity < 3.5) {
-        result = "Required_files/Shindo3.png"; // 震度3
-    } else if (numIntensity < 4.5) {
-        result = "Required_files/Shindo4.png"; // 震度4
-    } else if (numIntensity < 5.0) {
-        result = "Required_files/Shindo5-.png"; // 震度5弱
-    } else if (numIntensity < 5.5) {
-        result = "Required_files/Shindo5+.png"; // 震度5強
-    } else if (numIntensity < 6.0) {
-        result = "Required_files/Shindo6-.png"; // 震度6弱
-    } else if (numIntensity < 6.5) {
-        result = "Required_files/Shindo6+.png"; // 震度6強
-    } else {
-        result = "Required_files/Shindo7.png"; // 震度7
-    }
-
-    return result;
 }
 
 // 震度をラベルで返す関数（基準を未満に統一）
@@ -310,21 +279,16 @@ function yahooRealtimeData() {
         set_time_counter += 1;
         set_time = new Date(set_time.getTime() + set_time_counter * 1000);
     }
-
     const url_time_date = Yahoo_Time_date_fromat(set_time); // Assuming this formats the date correctly.
-
     // Test URL for API (replace with `url_time_date` as needed)
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${url_time_date}.json`;
-
     // Make synchronous API request
     const xhr = new XMLHttpRequest();
     xhr.open("GET", apiUrl, false);
     xhr.send();
-
     const request_status = `${xhr.status}${xhr.statusText}`;
     const yahoo_json_data = JSON.parse(xhr.responseText);
     const format_get_date = formatYahooTimeDate(set_time); // Assuming this formats the date correctly.
-
     // Structure for no EEW
     if (yahoo_json_data.hypoInfo === null) {
         return {
@@ -337,11 +301,9 @@ function yahooRealtimeData() {
             Telegram: yahoo_json_data
         };
     }
-
     // Structure for EEW issued
     const hypoInfo = yahoo_json_data.hypoInfo.items[0];
     const psWave = yahoo_json_data.psWave.items[0];
-
     return {
         situation: "EEW_has_been_issued",
         get_date: format_get_date,
@@ -366,7 +328,6 @@ function yahooRealtimeData() {
     };
 }
 
-
 // 地表情報提供APIを呼び出す関数
 function surfaceGroundInformationProvisionAPI(現在地緯度, 現在地経度) {
     // ローカルストレージからデータを取得
@@ -382,10 +343,8 @@ function surfaceGroundInformationProvisionAPI(現在地緯度, 現在地経度) 
         // レスポンスが成功（ステータスコード200）の場合のみ処理
         if (xhr.status === 200) {
             const json_data = JSON.parse(xhr.responseText);
-
             // ローカルストレージにデータを保存
             localStorage.setItem('surfaceARV', JSON.stringify(json_data));
-
             return json_data; // JSONを解析して返す
         } else {
             console.error('Error loading settings:', xhr.status);
@@ -420,7 +379,6 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     return { intensity, epicenterDistance, surfaceSpeed: parseFloat(surfaceSpeed.toFixed(3)), amplificationFactor };
 }
 
-
 function loadJSON(filePath) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', filePath, false);
@@ -433,12 +391,10 @@ function loadJSON(filePath) {
     }
 }
 
-
 function loadCSV(filePath) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', filePath, false); // 同期リクエスト
     xhr.send();
-    
     if (xhr.status === 200) {
         return xhr.responseText.split('\n').map(row => row.split(','));; // そのまま返す
     } else {
@@ -447,9 +403,7 @@ function loadCSV(filePath) {
     }
 }
 
-
 const cache = new Map(); // キャッシュ用
-
 let KM_data = null;
 function loadKMData() {
     if (!KM_data) {

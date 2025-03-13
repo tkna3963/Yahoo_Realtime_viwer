@@ -110,7 +110,7 @@
                 color: color,
                 fillColor: color,
                 fillOpacity: 1,
-                radius: 300, // 半径300mの円
+                radius: 500, // 半径500mの円
                 zIndexOffset: 5
             }).addTo(pointLayer);
 
@@ -186,7 +186,7 @@
                         }
 
                     }).addTo(map);
-
+                    geoLayer.bringToBack()
                     // 強度の変化に合わせて色を更新する部分
                     geoLayer.eachLayer(function (layer) {
                         const feature = layer.feature;
@@ -261,26 +261,21 @@
                 }).addTo(map);
             }
         }
-
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let prevIntensities = new Array(Poinsts.length).fill(null); // 初回はすべてnullで初期化
         let PIN = L.marker([0, 0]).addTo(map);
         let prevMax = { index: -1, intensity: -1 };
-
         function updatepinMap(data) {
             const Slist = data.seismicIntensityList.length;
 
             if (Poinsts.length !== Slist) {
                 return;
             }
-
             if (!prevIntensities || prevIntensities.length !== Slist) {
                 prevIntensities = new Array(Slist).fill(null); // 初回実行時またはデータサイズ変更時に初期化
             }
-
             let maxIntensity = -1; // 最大震度を追跡
             let maxIntensityIndex = -1; // 最大震度の地点のインデックスを追跡
-
             // 震度が一番高い地点を探す
             for (let i = 0; i < Slist; i++) {
                 const intensity = data.seismicIntensityList[i];
@@ -289,35 +284,24 @@
                     maxIntensityIndex = i;
                 }
             }
-
             // 最大震度の地点に変化があったときだけマップに更新
             if (maxIntensityIndex !== -1) {
                 if (prevMax.index !== maxIntensityIndex || prevMax.intensity !== maxIntensity) {
                     const maxPoint = Poinsts[maxIntensityIndex];
                     PIN.setLatLng([maxPoint[0], maxPoint[1]]);
-                    PIN.setIcon(L.icon({
-                        iconUrl: getSeismicImage(maxIntensity),
-                        iconSize: [15, 15],
-                        iconAnchor: [7, 40],
-                        popupAnchor: [0, -40]
-                    }));
                     PIN.bindPopup(`地点番号: ${maxIntensityIndex + 1} <br>強震震度: ${getShindoLabel(maxIntensity)} <br>取得時刻: ${new Date().toLocaleString()}`, { autoPan: false });
-
                     PIN.openPopup(); // 変更があった場合のみポップアップを表示
-
                     // 差分更新を記録
                     prevMax.index = maxIntensityIndex;
                     prevMax.intensity = maxIntensity;
                 }
             }
-
             // 各地点の震度をチェックして、変化があればマップに追加
             for (let i = 0; i < Math.min(Poinsts.length, Slist); i++) {
                 const point = Poinsts[i];
                 const intensity = data.seismicIntensityList[i];
-
                 if (prevIntensities[i] !== intensity) {
-                    const YM_KM_C_data=YM_KM_C(point[0], point[1])
+                    const YM_KM_C_data = YM_KM_C(point[0], point[1])
                     addPointToMap(YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon, getSeismicColor(intensity), `地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
@@ -328,7 +312,6 @@
         function updateCircleInfo(data, details) {
             document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
             updatepinMap(data)
-
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
@@ -359,24 +342,18 @@
 
         function main() {
             const datas_bords = datas_bord();
-
             // 前回のデータと比較し、変化がなければ更新しない
             if (JSON.stringify(datas_bords) === JSON.stringify(previousData)) {
                 return;
             }
             previousData = datas_bords;
-
             document.getElementById("get_time").innerText = datas_bords["yahoo_datas"]["get_date"];
-
             const locate_latitude = datas_bords.latitude || "不明";
             const locate_longitude = datas_bords.longitude || "不明";
             document.getElementById("location").innerText = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
-
             const detailsContainer = document.getElementById("earthquake-details");
             detailsContainer.innerHTML = "";
-
             let details = null;
-
             if (locate_latitude !== "不明" && locate_longitude !== "不明") {
                 if (currentLocationMarker) {
                     currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);
@@ -386,19 +363,14 @@
                         .openPopup();
                 }
             }
-
             if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
                 details = datas_bords.yahoo_datas;
-
                 if (details.Wave_latitude && details.Wave_longitude) {
                     updateMapWithEarthquake(details.Wave_latitude, details.Wave_longitude, details.sRadius);
-
                     mapcolor(datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist);
                 } else {
                     updateMapWithEarthquake(0, 0, 0);
-
                 }
-
                 const detailItems = [
                     { label: "報告ID", value: details.reportId },
                     { label: "発報番号", value: details.reportNum },
@@ -412,7 +384,6 @@
                     { label: "マグニチュード", value: details.magnitude },
                     { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD / 8)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / datas_bords.SFCD) * 100)}%) ${details.sRadius}km(約${(Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / datas_bords.SFCD) * 100)}%)` }
                 ];
-
                 detailItems.forEach(item => {
                     const div = document.createElement("div");
                     div.className = "data-point";
@@ -422,15 +393,11 @@
             } else {
                 detailsContainer.innerHTML = "<div class='data-point'>現在有効な地震情報はありません。</div>";
             }
-
             document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
             updateCircleInfo(datas_bords, details);
-
-
         }
         setInterval(main, 1000);  // 1秒ごとに実行
     </script>
-
     <script>
         function openImage(src) {
             window.open(src, "_blank", "width=600, height=400");
