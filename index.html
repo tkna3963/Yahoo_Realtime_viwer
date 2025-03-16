@@ -100,11 +100,9 @@
 
         let previousData = null; // 以前のデータを保存
         let geoLayer = null; // 既存のレイヤーを保持
-
         function addPointToMap(latitude, longitude, color = 'blue', description = 'ここにポイントがあります') {
             const pointLayer = L.layerGroup().addTo(map);
-            pointLayer.clearLayers()
-
+            pointLayer.clearLayers();
             // 地図にマーカーを追加
             const marker = L.circle([latitude, longitude], {
                 color: color,
@@ -113,13 +111,13 @@
                 radius: 500, // 半径500mの円
                 zIndexOffset: 5
             }).addTo(pointLayer);
-
             // クリック時に説明を表示する
             marker.on('click', function () {
                 // ポップアップで説明を表示
                 marker.bindPopup(description).openPopup();
             });
         }
+
 
         function mapcolor(AreaSFClist, Areanamelist, Arvlist, DBLlist) {
             document.getElementById("arascalcintensity").textContent = countSeismicIntensity(AreaSFClist) || "なし";
@@ -265,8 +263,11 @@
         let prevIntensities = new Array(Poinsts.length).fill(null); // 初回はすべてnullで初期化
         let PIN = L.marker([0, 0]).addTo(map);
         let prevMax = { index: -1, intensity: -1 };
+        let For_detection_list = []
         function updatepinMap(data) {
             const Slist = data.seismicIntensityList.length;
+            const iPoint = detectEvents(data.seismicIntensityList, Poinsts);
+            console.log(iPoint)
 
             if (Poinsts.length !== Slist) {
                 return;
@@ -346,6 +347,7 @@
             if (JSON.stringify(datas_bords) === JSON.stringify(previousData)) {
                 return;
             }
+
             previousData = datas_bords;
             document.getElementById("get_time").innerText = datas_bords["yahoo_datas"]["get_date"];
             const locate_latitude = datas_bords.latitude || "不明";
@@ -397,6 +399,7 @@
             updateCircleInfo(datas_bords, details);
         }
         setInterval(main, 1000);  // 1秒ごとに実行
+
     </script>
     <script>
         function openImage(src) {

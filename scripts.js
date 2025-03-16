@@ -452,14 +452,11 @@ function datas_bord() {
     const Arvlist = [];
     const DBLlist = [];
     const YahooDatas = yahooRealtimeData();
-
-
     results_datalist.yahoo_datas = YahooDatas;
     results_datalist.seismicIntensityList = YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char));
     results_datalist.MAXseismicIntensity = Math.max(...YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char)));
     results_datalist.latitude = currentLocation.latitude;
     results_datalist.longitude = currentLocation.longitude;
-
     if (currentLocation.latitude, currentLocation.longitude, YahooDatas.magnitude) {
         var SFGIPJ = surfaceGroundInformationProvisionAPI(currentLocation.latitude, currentLocation.longitude)
         var SFGIPARV = SFGIPJ.features[0].properties.ARV
@@ -468,7 +465,6 @@ function datas_bord() {
         var SFCD = Math.round(SFC.epicenterDistance)
         results_datalist.SFCI = SFCI;
         results_datalist.SFCD = SFCD;
-
         centers = loadJSON("Required_files/centerARVs.json")
         for (const center of centers.centers) {
             const AreaSFC = calculateDistanceAttenuation(
@@ -490,5 +486,102 @@ function datas_bord() {
     }
 
     return results_datalist;
+}
+
+
+function playBeep(frequency = 440, duration = 500) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.type = 'sine'; // サイン波
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // 周波数を設定
+    gainNode.gain.setValueAtTime(1, audioContext.currentTime); // 音量を設定
+    oscillator.start();
+
+    setTimeout(() => {
+        oscillator.stop();
+    }, duration); // 指定した時間後に停止
+}
+
+const threshold = 0.5; // イベントを検出するための強度の閾値
+const historyWindow = 10; // 過去の秒数 (10秒)
+const minMagnitudeChange = 1.0; // 最小震度変化 (検出基準)
+
+function detectEvents(intensityData, locations) {
+    const events = [];
+    const eventMap = new Map(); // イベントIDでイベントを追跡
+    const lastIntensities = new Array(intensityData.length).fill(0); // 最後の強度を記録
+    let baseTime = Date.now(); // ベースとなる開始時刻を記録
+
+    intensityData.forEach((intensity, index) => {
+        const location = locations[index];
+        const intensityChange = Math.abs(intensity - lastIntensities[index]); // 強度の変化量を計算
+
+        // 震度が閾値を超えた場合、かつ過去の強度との差が一定以上ならば
+        if (intensity >= threshold && intensityChange >= minMagnitudeChange) {
+            // 時刻の差異を強度の変化量やインデックスで作成
+            const timeOffset = Math.round(intensityChange * 100); // 強度の変化に応じてオフセットを決定
+            const currentTime = new Date(baseTime + (index * 1000) + timeOffset).toISOString(); // 1秒ごとにずらし、強度変化に応じてオフセット
+
+            let eventId = `event-${index}`;
+
+            // 近隣の観測点をチェック
+            const neighbors = getNearbyLocations(index); // 近隣観測点を取得する関数（仮定）
+            neighbors.forEach(neighborIndex => {
+                const neighborIntensity = intensityData[neighborIndex];
+                if (neighborIntensity >= threshold && Math.abs(neighborIntensity - lastIntensities[neighborIndex]) >= minMagnitudeChange) {
+                    eventId = `event-${Math.min(index, neighborIndex)}`;
+                }
+            });
+
+            // 既存のイベントIDがあれば統合
+            if (eventMap.has(eventId)) {
+                const existingEvent = eventMap.get(eventId);
+                existingEvent.lastDetectedAt = currentTime;
+                existingEvent.locations.push(location);
+                existingEvent.maxIntensity = Math.max(existingEvent.maxIntensity, intensity);
+                // イベント情報も時刻と共に更新
+                existingEvent.detectedAt.push(currentTime);  // 時刻をリストとして追加
+            } else {
+                // 新しいイベントを作成
+                eventMap.set(eventId, {
+                    id: eventId,
+                    location: location,
+                    intensity: intensity,
+                    detectedAt: [currentTime],  // 時刻をリストとして追加
+                    maxIntensity: intensity,
+                    locations: [location],
+                });
+            }
+
+            // イベント情報を配列に追加 (位置と時刻)
+            events.push([location[0], location[1], currentTime]);
+        }
+        // 最後の強度を更新
+        lastIntensities[index] = intensity;
+    });
+
+    // イベント情報を返す
+    return events;
+}
+
+// 近隣観測点を取得する関数（仮定）
+function getNearbyLocations(index) {
+    // ここで、指定した観測点の近隣の観測点を返す
+    // 現在のサンプルコードでは、簡略化して1つ前と1つ後のインデックスを返すようにします
+    return [index - 1, index + 1].filter(i => i >= 0); // 範囲外チェック
+}
+
+// 地震強さを分類する関数
+function getEarthquakeStrength(maxIntensity) {
+    if (maxIntensity >= 5) return "Stronger";
+    if (maxIntensity >= 3) return "Strong";
+    if (maxIntensity >= 1) return "Medium";
+    if (maxIntensity >= 0.5) return "Weak";
+    return "Weaker";
 }
 
