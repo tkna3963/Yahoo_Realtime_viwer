@@ -507,10 +507,10 @@ function playBeep(frequency = 440, duration = 500) {
     }, duration); // 指定した時間後に停止
 }
 
+
 const threshold = 0.5; // イベントを検出するための強度の閾値
 const historyWindow = 10; // 過去の秒数 (10秒)
 const minMagnitudeChange = 1.0; // 最小震度変化 (検出基準)
-
 function detectEvents(intensityData, locations) {
     const events = [];
     const eventMap = new Map(); // イベントIDでイベントを追跡
