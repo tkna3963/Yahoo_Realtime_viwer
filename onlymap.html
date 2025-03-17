@@ -4,97 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yahooリアルタイム開発者地震情報</title>
+    <title>OnlyMaper</title>
     <script src="scripts.js"></script>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="icon" href="Required_files/epicenter.png">
+    <style>
+        body,
+        html {
+            background-color: rgb(3, 28, 67);
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        #time_machine {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+        }
+    </style>
 </head>
 
 <body>
-    <main>
-        <div class="panel">
-            <div class="info-card">
-                <h2>基本情報</h2>
-                <div class="data-point">
-                    <label>現在時刻:</label>
-                    <value id="get_time" style="font-family: 'DSEG7', sans-serif;">読み込み中...</value>
-                </div>
-                <div class="data-point">
-                    <label>現在位置:</label>
-                    <value id="location" style="font-family: 'DSEG7', sans-serif;">取得中...</value>
-                </div>
-                <div class="data-point">
-                    <input id="time_machine">
-                </div>
-
-                <div class="intensity-info">
-                    <h2>主要情報</h2>
-                    <div class="info-item">
-                        <span class="label">発報番号</span>
-                        <span class="value" id="reportNum" style="font-family: 'DSEG7', sans-serif;">--</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">最大強震震度</span>
-                        <span class="value" id="max-intensity" style="font-family: 'DSEG7', sans-serif;">--</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">現在地予想震度</span>
-                        <span class="value" id="calclocate-intensity"
-                            style="font-family: 'DSEG7', sans-serif;">--</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">予想最大震度</span>
-                        <span class="value" id="calc-intensity" style="font-family: 'DSEG7', sans-serif;">--</span>
-                    </div>
-                </div>
-                <div class="magnitude-info">
-                    <span class="label">M</span>
-                    <span class="value" id="magnitude" style="font-family: 'DSEG7', sans-serif;">--</span>
-                </div>
-                <div class="info-item">
-                    <span class="label"> 震央距離:</span>
-                    <span class="value" id="Epicentral-distance" style="font-family: 'DSEG7', sans-serif;">--</span>
-                </div>
-                <div class="wave-info">
-                    <div class="info-item">P波: <span id="p-radius" style="font-family: 'DSEG7', sans-serif;">--</span>
-                    </div>
-                    <div class="info-item">S波: <span id="s-radius" style="font-family: 'DSEG7', sans-serif;">--</span>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <span class="label">予想現在地P-S時間:</span>
-                    <span class="value" id="P-Stime" style="font-family: 'DSEG7', sans-serif;">--</span>
-                </div>
-
-                <div class="info-item">
-                    <span class="label">各地の予想震度:</span>
-                    <span class="value" id="arascalcintensity">--</span>
-                </div>
-                <button onclick="openSubWindow()">Kyoushin_Moniter</button>
-            </div>
-        </div>
-
-        <div class="panel center-panel">
-            <div class="center-circle">
-                <div class="circle-inner"></div>
-                <div class="circle-content">
-                    <div id="map" style="height: 400px; width: 100%;"></div>
-                </div>
-            </div>
-            <div class="info-card">
-                <h2>地震詳細情報</h2>
-                <div id="earthquake-details">
-                    <div class="data-point" style="font-family: 'DSEG7', sans-serif;">情報を取得中... </div>
-                </div>
-                <div class="panel">
-                    <h2>詳細データ（JSON）</h2>
-                    <textarea id="jsonarea" readonly>取得中...</textarea>
-                </div>
-            </div>
-        </div>
-    </main>
+    <div id="map"></div>
+    <input id="time_machine">
 
     <script>
 
@@ -120,7 +59,6 @@
 
 
         function mapcolor(AreaSFClist, Areanamelist, Arvlist, DBLlist) {
-            document.getElementById("arascalcintensity").textContent = countSeismicIntensity(AreaSFClist) || "なし";
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
                 .then(data => {
@@ -271,12 +209,12 @@
             let first100Points = iPoint.slice(0, 10);
 
             first100Points.forEach(([lat, lon, timestamp], index) => {
-                let baseSize = 1000000;
+                let baseSize = 100000; // 基本の正方形のサイズ (震度に応じて調整)
 
                 // 正方形の範囲を作成
                 let bounds = [
-                    [lat - 0.2, lon - 0.2],  // 左下
-                    [lat + 0.2, lon + 0.2]   // 右上
+                    [lat - 0.1, lon - 0.1],  // 左下
+                    [lat + 0.1, lon + 0.1]   // 右上
                 ];
 
                 let square = L.rectangle(bounds, {
@@ -348,34 +286,7 @@
 
         let noticount = 0;
         function updateCircleInfo(data, details) {
-            document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
             updatepinMap(data)
-            if (data.yahoo_datas.situation === "EEW_has_been_issued") {
-                document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
-                document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
-                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / data.SFCD) * 100)}%})` || "--";
-                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / data.SFCD) * 100)}%})` || "--";
-                document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
-                document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
-                document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
-                document.getElementById("P-Stime").textContent = `約${Math.round(data.SFCD / 8)}秒` || "--";
-                noticount++;
-                if (noticount == 100) {
-                    notion(`発表時刻:${data.yahoo_datas.reportTime} 予想最大震度:${data.yahoo_datas.calcIntensity} マグニチュード:${data.yahoo_datas.magnitude} 現在地震度:${data.SFCI} 到達まで${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒`)
-                } else {
-                    noticount = 0;
-                }
-            } else {
-                document.getElementById("calc-intensity").textContent = "--";
-                document.getElementById("magnitude").textContent = "--";
-                document.getElementById("p-radius").textContent = "--";
-                document.getElementById("s-radius").textContent = "--";
-                document.getElementById("reportNum").textContent = "--";
-                document.getElementById("calclocate-intensity").textContent = "--";
-                document.getElementById("arascalcintensity").textContent = "--";
-                document.getElementById("Epicentral-distance").textContent = "--";
-                document.getElementById("P-Stime").textContent = "--";
-            }
         }
 
         function main() {
@@ -386,12 +297,8 @@
             }
 
             previousData = datas_bords;
-            document.getElementById("get_time").innerText = datas_bords["yahoo_datas"]["get_date"];
             const locate_latitude = datas_bords.latitude || "不明";
             const locate_longitude = datas_bords.longitude || "不明";
-            document.getElementById("location").innerText = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
-            const detailsContainer = document.getElementById("earthquake-details");
-            detailsContainer.innerHTML = "";
             let details = null;
             if (locate_latitude !== "不明" && locate_longitude !== "不明") {
                 if (currentLocationMarker) {
@@ -410,41 +317,11 @@
                 } else {
                     updateMapWithEarthquake(0, 0, 0);
                 }
-                const detailItems = [
-                    { label: "報告ID", value: details.reportId },
-                    { label: "発報番号", value: details.reportNum },
-                    { label: "報告時間", value: `${details.reportTime}(${calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.reportTime))}秒前)` },
-                    { label: "地震発生時刻", value: `${details.originTime}(${calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒前)` },
-                    { label: "震源地名", value: details.regionName },
-                    { label: "緯度経度座標", value: `${details.Wave_latitude},${details.Wave_longitude}` },
-                    { label: "震源距離", value: `${datas_bords.SFCD}km` },
-                    { label: "震源の深さ (km)", value: details.depth },
-                    { label: "予想最大深度", value: details.calcIntensity },
-                    { label: "マグニチュード", value: details.magnitude },
-                    { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(datas_bords.SFCD / 8)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / datas_bords.SFCD) * 100)}%) ${details.sRadius}km(約${(Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(parseCustomDate(datas_bords["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / datas_bords.SFCD) * 100)}%)` }
-                ];
-                detailItems.forEach(item => {
-                    const div = document.createElement("div");
-                    div.className = "data-point";
-                    div.innerHTML = `<label>${item.label}:</label><value>${item.value}</value>`;
-                    detailsContainer.appendChild(div);
-                });
-            } else {
-                detailsContainer.innerHTML = "<div class='data-point'>現在有効な地震情報はありません。</div>";
             }
-            document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
             updateCircleInfo(datas_bords, details);
         }
         setInterval(main, 1000);  // 1秒ごとに実行
 
-    </script>
-    <script>
-        function openImage(src) {
-            window.open(src, "_blank", "width=600, height=400");
-        }
-        function openSubWindow() {
-            window.open("sub_window.html", "_blank", "width=342px, height=440px");
-        }
     </script>
 </body>
 
