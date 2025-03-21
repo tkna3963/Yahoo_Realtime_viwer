@@ -419,8 +419,8 @@ function YM_KM_C(latitude, longitude) {
     let min_dist = Infinity;
     let closest_site = null;
     for (let km of KM_data) {
-        let km_lat = parseFloat(km[3]);
-        let km_lon = parseFloat(km[4]);
+        let km_lat = parseFloat(km[4]);
+        let km_lon = parseFloat(km[5]);
         if (isNaN(km_lat) || isNaN(km_lon)) continue;
         let dist = calculateDistance([latitude, longitude], [km_lat, km_lon]);
         if (dist < min_dist) {
@@ -430,11 +430,13 @@ function YM_KM_C(latitude, longitude) {
     }
     if (closest_site) {
         let result = {
+            type: closest_site[0],
+            id: closest_site[1],
             latitude: latitude,
             longitude: longitude,
             closest_KM_site: closest_site[2],
-            KM_lat: closest_site[3],
-            KM_lon: closest_site[4],
+            KM_lat: closest_site[4],
+            KM_lon: closest_site[5],
             distance: min_dist
         };
         cache.set(cacheKey, result);
@@ -508,7 +510,7 @@ function playBeep(frequency = 440, duration = 500) {
 }
 
 
-const threshold = 0.5; // イベントを検出するための強度の閾値
+const threshold = 1; // イベントを検出するための強度の閾値
 const historyWindow = 10; // 過去の秒数 (10秒)
 const minMagnitudeChange = 1.0; // 最小震度変化 (検出基準)
 function detectEvents(intensityData, locations) {

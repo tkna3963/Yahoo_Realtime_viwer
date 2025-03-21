@@ -268,7 +268,7 @@
             shakeSquares = [];
 
             // 最初の100個だけ取得
-            let first100Points = iPoint.slice(0, 10);
+            let first100Points = iPoint.slice(0, 5);
 
             first100Points.forEach(([lat, lon, timestamp], index) => {
                 let baseSize = 1000000;
@@ -304,7 +304,6 @@
             const iPoint = detectEvents(data.seismicIntensityList, Poinsts);
             if (iPoint.length != 0) {
                 animateShakeEffect(iPoint);
-                console.log(iPoint);
             }
             if (Poinsts.length !== Slist) {
                 return;
@@ -340,7 +339,7 @@
                 const intensity = data.seismicIntensityList[i];
                 if (prevIntensities[i] !== intensity) {
                     const YM_KM_C_data = YM_KM_C(point[0], point[1])
-                    addPointToMap(YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon, getSeismicColor(intensity), `地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity}`);
+                    addPointToMap(YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon, getSeismicColor(intensity), `type:${YM_KM_C_data.type} id:${YM_KM_C_data.id} 地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity}`);
                     prevIntensities[i] = intensity; // 最新のデータを記録
                 }
             }
