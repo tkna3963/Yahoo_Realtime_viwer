@@ -577,13 +577,3 @@ function getNearbyLocations(index) {
     // 現在のサンプルコードでは、簡略化して1つ前と1つ後のインデックスを返すようにします
     return [index - 1, index + 1].filter(i => i >= 0); // 範囲外チェック
 }
-
-// 地震強さを分類する関数
-function getEarthquakeStrength(maxIntensity) {
-    if (maxIntensity >= 5) return "Stronger";
-    if (maxIntensity >= 3) return "Strong";
-    if (maxIntensity >= 1) return "Medium";
-    if (maxIntensity >= 0.5) return "Weak";
-    return "Weaker";
-}
-

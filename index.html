@@ -129,8 +129,8 @@
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
-                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%})` || "--";
-                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%})` || "--";
+                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%)` || "--";
+                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%)` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
                 document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
                 document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
@@ -156,7 +156,6 @@
 
         let ColoringLayer = null;
         function EEWColoringMap(data) {
-
             fetch('Required_files/japanmap.json') // GeoJSONファイルのパスを指定
                 .then(response => response.json())
                 .then(geojsonData => {
@@ -301,6 +300,7 @@
                     marker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity}`).openPopup();
                 });
                 KyoushinPreviousMarkers.set(i, marker);
+                KyoushinPreviousMarkers.get(i).bringToFront()
             }
 
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
@@ -321,7 +321,7 @@
                 setTimeout(() => {
                     map.removeLayer(square);
                 }, 200);
-                if (ShakeDetectionPoint.length >= 2 & ShakeDetectionPoint.length <= 3) {
+                if (ShakeDetectionPoint.length >= 3 & ShakeDetectionPoint.length <= 4& data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
                     playBeep(1440)
                     //マップをロード
                     map.setView([lat, lon], 7, {
