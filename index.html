@@ -352,7 +352,7 @@
                     // アイコン作成
                     const icon = L.divIcon({
                         className: 'custom-icon', // クラス名（CSSスタイルを適用）
-                        html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site}<br>${intensity}</div>`, // アイコンの中身
+                        html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site.slice(0,1)}:${intensity}</div>`, // アイコンの中身
                         iconSize: [5, 5], // アイコンのサイズ
                         iconAnchor: [5, 5], // アイコンの中心
                     });
