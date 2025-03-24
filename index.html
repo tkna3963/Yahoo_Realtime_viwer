@@ -358,6 +358,18 @@
                 if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
                     EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
                     EEWCircle(datas_bords);
+                    
+                    let x = (Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(
+                        parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),
+                        parseCustomDate(datas_bords.yahoo_datas.originTime)
+                    );                    
+                    if (0 <= x && x <= 10) {
+                        vibrate(100);
+                    }
+                    if (-10 <= x && x <= 0) {
+                        vibrate(1000);
+                    }
+                    
                 } else {
                     EEWColoringMap(null);
                     EEWCircle(null);

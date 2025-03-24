@@ -37,6 +37,14 @@ function playBeep(frequency = 440, duration = 500) {
 }
 
 
+function vibrate(pattern) {
+    if ("vibrate" in navigator) {
+        navigator.vibrate(pattern);
+    } else {
+        console.warn("このデバイスはバイブレーションをサポートしてないよ…");
+    }
+}
+
 function notion(text) {
     // 通知の許可をリクエスト
     Notification.requestPermission().then((permission) => {
