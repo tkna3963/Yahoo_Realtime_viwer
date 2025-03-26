@@ -343,7 +343,6 @@ function yahooRealtimeData() {
         set_time = new Date(set_time.getTime() + set_time_counter * 1000);
     }
     const url_time_date = Yahoo_Time_date_fromat(set_time); // Assuming this formats the date correctly.
-    // Test URL for API (replace with `url_time_date` as needed)
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${url_time_date}.json`;
     // Make synchronous API request
     const xhr = new XMLHttpRequest();
@@ -569,10 +568,11 @@ function detectEvents(intensityData, locations) {
         if (intensity >= threshold && intensityChange >= minMagnitudeChange) {
             // 時刻の差異を強度の変化量やインデックスで作成
             const timeOffset = Math.round(intensityChange * 100); // 強度の変化に応じてオフセットを決定
-            const currentTime = new Date(baseTime + (index * 1000) + timeOffset).toISOString(); // 1秒ごとにずらし、強度変化に応じてオフセット
+            const currentTime = new Date(baseTime + (index * 1) + timeOffset).toISOString(); // 1秒ごとにずらし、強度変化に応じてオフセット
             let eventId = `event-${index}`;
             // 近隣の観測点をチェック
-            const neighbors = getNearbyLocations(index); // 近隣観測点を取得する関数（仮定）
+            const neighbors = [index - 1, index + 1].filter(i => i >= 0 && i < intensityData.length);
+            // 近隣の観測点でイベントが検出されたかチェック
             neighbors.forEach(neighborIndex => {
                 const neighborIntensity = intensityData[neighborIndex];
                 if (neighborIntensity >= threshold && Math.abs(neighborIntensity - lastIntensities[neighborIndex]) >= minMagnitudeChange) {
@@ -607,9 +607,3 @@ function detectEvents(intensityData, locations) {
     return events;
 }
 
-// 近隣観測点を取得する関数（仮定）
-function getNearbyLocations(index) {
-    // ここで、指定した観測点の近隣の観測点を返す
-    // 現在のサンプルコードでは、簡略化して1つ前と1つ後のインデックスを返すようにします
-    return [index - 1, index + 1].filter(i => i >= 0); // 範囲外チェック
-}
