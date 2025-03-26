@@ -90,13 +90,10 @@ const TemporaryDataRecordList = [];
 
 function checkDuplicateData(Data) {
     TemporaryDataRecordList.push(Data);
-    
     const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-    
     const count = TemporaryDataRecordList.filter(
         data => isEqual(data, Data)
     ).length;
-    
     if (count === 1) {
         return true;
     } else {
