@@ -1,4 +1,5 @@
-let currentLocation = { latitude: null, longitude: null };
+
+let currentLocation = { latitude: 0, longitude: 0 };
 
 function updateLocation(position) {
     currentLocation.latitude = position.coords.latitude;
@@ -6,19 +7,28 @@ function updateLocation(position) {
     console.log(`現在地: 緯度 ${currentLocation.latitude}, 経度 ${currentLocation.longitude}`);
 }
 
+function handleLocationError(error) {
+    console.error('Geolocation error:', error);
+    // エラー時に一時的に (0,0) に設定
+    currentLocation.latitude = 0;
+    currentLocation.longitude = 0;
+    console.log('現在地を一時的に (0,0) に設定しました');
+}
+
 if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(updateLocation, error => {
-        console.error('Geolocation error:', error);
-    }, {
+    navigator.geolocation.watchPosition(updateLocation, handleLocationError, {
         enableHighAccuracy: true,
         maximumAge: 0,
         timeout: 1000
     });
 } else {
     console.error("Geolocation is not supported by this browser.");
+    handleLocationError();
 }
 
+
 function playBeep(frequency = 440, duration = 500) {
+    //console.log(frequency)
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -73,6 +83,32 @@ function objectToJsonText(obj, space = 2) {
         return JSON.stringify(obj, null, space);
     } catch (error) {
         return `Error converting object to JSON: ${error.message}`;
+    }
+}
+
+const TemporaryDataRecordList = [];
+
+function checkDuplicateData(Data) {
+    TemporaryDataRecordList.push(Data);
+    
+    const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    
+    const count = TemporaryDataRecordList.filter(
+        data => isEqual(data, Data)
+    ).length;
+    
+    if (count === 1) {
+        return true;
+    } else {
+        if (count === 2) {
+            const index = TemporaryDataRecordList.findIndex(
+                data => isEqual(data, Data)
+            );
+            if (index !== -1) {
+                TemporaryDataRecordList.splice(index, 1);
+            }
+        }
+        return false;
     }
 }
 
@@ -189,7 +225,8 @@ function getShindoLabel(shindo) {
     if (shindo < 5.5) return "5強";
     if (shindo < 6.0) return "6弱";
     if (shindo < 6.5) return "6強";
-    return "7";
+    if (shindo <= 6.5) return "7";
+    return "0";
 }
 
 // 震度に対応する色を返す関数（基準を未満に統一）
@@ -197,9 +234,9 @@ function getColor(shindo) {
     let color;
 
     if (shindo < 0.5) {
-        color = "#FFFFFF"; // 震度0: 白
+        color = "#ADADAD"; // 震度0: グレー
     } else if (shindo < 1.5) {
-        color = "#ADADAD"; // 震度1: グレー
+        color = "#FFFFFF"; // 震度1:  白
     } else if (shindo < 2.5) {
         color = "#0066CC"; // 震度2: 青
     } else if (shindo < 3.5) {
@@ -216,6 +253,8 @@ function getColor(shindo) {
         color = "#E33977"; // 震度6強: ピンク/マゼンタ (同じ色で表示)
     } else if (shindo <= 6.5) {
         color = "#5D1799"; // 震度7: 紫
+    } else {
+        color = "#1c0142";
     }
 
     return color;

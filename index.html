@@ -175,6 +175,7 @@
                         ColoringLayer.bringToBack(); // ← 常時背面に配置
                     } else {
                         document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
+                        playBeep(400)
                         const areaSFCMap = {}, areaNameMap = {}, ArvMap = {}, DBLMap = {};
                         geojsonData.features.forEach((feature, index) => {
                             const coords = JSON.stringify(feature.geometry.coordinates);
@@ -303,10 +304,10 @@
                 }).addTo(KyoushinLayer);
 
                 marker.on('click', () => {
-                    marker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity}`).openPopup();
+                    marker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
                 });
                 KyoushinPreviousMarkers.set(i, marker);
-                KyoushinPreviousMarkers.get(i).bringToFront()
+                KyoushinPreviousMarkers.get(i)
             }
 
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
@@ -392,10 +393,12 @@
             });
         }
 
+
         let currentLocationMarker = null; // 現在地のマーカー
         //実行部
         function main() {
             const datas_bords = datas_bord();
+            console.log(datas_bords);
             const locate_latitude = datas_bords.latitude || 0;
             const locate_longitude = datas_bords.longitude || 0;
             if (locate_latitude !== 0 && locate_longitude !== 0) {
@@ -411,8 +414,23 @@
                 document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
                 document.getElementById("location").textContent = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
                 if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
-                    EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
+                    if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
+                        EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
+                    }
                     EEWCircle(datas_bords);
+                    
+                    //音声s
+                    //EEW
+                    const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
+                    if (checkEEW) {
+                        text_speak(`緊急地震速報${datas_bords["yahoo_datas"]["regionName"]}で地震発生`);
+                        playBeep(1000)
+                    }
+                    //続報音
+                    const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
+                    if (checkEEWUpdates) {
+                        playBeep(900)   
+                    }
                     let x = (Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(
                         parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),
                         parseCustomDate(datas_bords.yahoo_datas.originTime)
