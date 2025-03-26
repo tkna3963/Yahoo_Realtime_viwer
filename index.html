@@ -418,7 +418,7 @@
                         EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
                     }
                     EEWCircle(datas_bords);
-                    
+
                     //音声s
                     //EEW
                     const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
@@ -429,7 +429,7 @@
                     //続報音
                     const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
                     if (checkEEWUpdates) {
-                        playBeep(900)   
+                        playBeep(900)
                     }
                     let x = (Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(
                         parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),
@@ -447,9 +447,12 @@
                 }
             }
         }
-
-        main();
-        setInterval(main, 1000);
+        function startup() {
+            main();
+            setInterval(main, 1000);
+        }
+        //ページが完全に読み込まれたら実行
+        window.addEventListener("load", startup);
     </script>
 
     <script>
