@@ -406,16 +406,10 @@
                 if (currentLocationMarker) {
                     currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);
                 } else {
-                    currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map).openPopup();
+                    //Required_files/japanmap.jsonから現在地の住所を取得
+                    var LOname=findRegion(locate_latitude, locate_longitude, fetch("Required_files/japanmap.json"));
+                    currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map).openPopup(`${LOname[0]}${LOname[1]}${LOname[2]}`);
                 }
-                //Required_files/japanmap.jsonから現在地の住所を取得
-                fetch('Required_files/japanmap.json')
-                    .then(response => response.json())
-                    .then(geojsonData => {
-                        const closestPoint = findClosestPoint(geojsonData, [locate_latitude, locate_longitude]);
-                        const closestPointName = closestPoint.properties.name;
-                        currentLocationMarker.bindPopup(`現在地: ${closestPointName}`).openPopup();
-                    });
             }
             InformationPrinter(datas_bords);
             DetailedInformationPrinter(datas_bords);
