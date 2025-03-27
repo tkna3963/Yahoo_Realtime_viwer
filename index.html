@@ -408,46 +408,54 @@
                 } else {
                     currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map).openPopup();
                 }
-                InformationPrinter(datas_bords);
-                DetailedInformationPrinter(datas_bords);
-                KyoushinMoniter(datas_bords, [locate_latitude, locate_longitude]);
-                document.getElementById("get_time").textContent = datas_bords.yahoo_datas.get_date;
-                document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
-                document.getElementById("location").textContent = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
-                if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
-                    if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
-                        EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
-                    }
-                    EEWCircle(datas_bords);
-
-                    //音声s
-                    //EEW
-                    const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
-                    if (checkEEW) {
-                        text_speak(`緊急地震速報${datas_bords["yahoo_datas"]["regionName"]}で地震発生`);
-                        playBeep(1000)
-                    }
-                    //続報音
-                    const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
-                    if (checkEEWUpdates) {
-                        playBeep(900)
-                    }
-                    let x = (Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(
-                        parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),
-                        parseCustomDate(datas_bords.yahoo_datas.originTime)
-                    );
-                    if (0 <= x && x <= 10) {
-                        vibrate(100);
-                    }
-                    if (-10 <= x && x <= 0) {
-                        vibrate(1000);
-                    }
-                } else {
-                    EEWColoringMap(null);
-                    EEWCircle(null);
+                //Required_files/japanmap.jsonから現在地の住所を取得
+                fetch('Required_files/japanmap.json')
+                    .then(response => response.json())
+                    .then(geojsonData => {
+                        const closestPoint = findClosestPoint(geojsonData, [locate_latitude, locate_longitude]);
+                        const closestPointName = closestPoint.properties.name;
+                        currentLocationMarker.bindPopup(`現在地: ${closestPointName}`).openPopup();
+                    });
+            }
+            InformationPrinter(datas_bords);
+            DetailedInformationPrinter(datas_bords);
+            KyoushinMoniter(datas_bords, [locate_latitude, locate_longitude]);
+            document.getElementById("get_time").textContent = datas_bords.yahoo_datas.get_date;
+            document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
+            document.getElementById("location").textContent = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
+            if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
+                if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
+                    EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
                 }
+                EEWCircle(datas_bords);
+                //音声s
+                //EEW
+                const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
+                if (checkEEW) {
+                    text_speak(`緊急地震速報${datas_bords["yahoo_datas"]["regionName"]}で地震発生`);
+                    playBeep(1000)
+                }
+                //続報音
+                const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
+                if (checkEEWUpdates) {
+                    playBeep(900)
+                }
+                let x = (Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(
+                    parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),
+                    parseCustomDate(datas_bords.yahoo_datas.originTime)
+                );
+                if (0 <= x && x <= 10) {
+                    vibrate(100);
+                }
+                if (-10 <= x && x <= 0) {
+                    vibrate(1000);
+                }
+            } else {
+                EEWColoringMap(null);
+                EEWCircle(null);
             }
         }
+
         function startup() {
             main();
             setInterval(main, 1000);
