@@ -407,8 +407,12 @@
                     currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);
                 } else {
                     //Required_files/japanmap.jsonから現在地の住所を取得
-                    var LOname=findRegion(locate_latitude, locate_longitude, fetch("Required_files/japanmap.json"));
-                    currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map).openPopup(`${LOname[0]}${LOname[1]}${LOname[2]}`);
+                    fetch("Required_files/japanmap.json")
+                        .then(response => response.json())
+                        .then(geojsonData => {
+                            var LOname = findRegion(locate_latitude, locate_longitude,geojsonData);
+                            currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map).openPopup(`${LOname[0]}${LOname[1]}${LOname[2]}`);        
+                        });
                 }
             }
             InformationPrinter(datas_bords);
