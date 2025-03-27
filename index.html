@@ -274,10 +274,11 @@
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let KyoushinPreviousData = new Map();
         let KyoushinPreviousMarkers = new Map();
-
+        let shakeSquares = [];
+        let previousClosestPoint = null; // 直前の最寄り観測点
+        let marker = null;
         function KyoushinMoniter(data, locate) {
             const Slist = data.seismicIntensityList.length;
-
             // 観測点の数が変わったらリセット
             if (Slist !== Poinsts.length) {
                 KyoushinLayer.clearLayers();
