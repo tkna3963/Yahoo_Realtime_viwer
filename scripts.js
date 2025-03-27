@@ -26,26 +26,6 @@ if (navigator.geolocation) {
     handleLocationError();
 }
 
-function findRegion(lat, lon, geoJson) {
-    // 射影点が多角形内にあるか判定（Ray-Castingアルゴリズム）
-    const pointInPolygon = (point, polygon) => {
-        let [x, y] = point, inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            let [xi, yi] = polygon[i], [xj, yj] = polygon[j];
-            let intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-            if (intersect) inside = !inside;
-        }
-        return inside;
-    };
-    for (const feature of geoJson.features) {
-        if (pointInPolygon([lon, lat], feature.geometry.coordinates[0])) {
-            return feature.properties;
-        }
-    }
-    return null;
-}
-
-
 function playBeep(frequency = 440, duration = 500) {
     //console.log(frequency)
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
