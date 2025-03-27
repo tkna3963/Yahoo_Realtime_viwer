@@ -274,40 +274,52 @@
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let KyoushinPreviousData = new Map();
         let KyoushinPreviousMarkers = new Map();
-        let shakeSquares = [];
-        let previousClosestPoint = null; // 直前の最寄り観測点
-        let marker = null;
+
         function KyoushinMoniter(data, locate) {
             const Slist = data.seismicIntensityList.length;
+
+            // 観測点の数が変わったらリセット
             if (Slist !== Poinsts.length) {
                 KyoushinLayer.clearLayers();
                 KyoushinPreviousData.clear();
                 KyoushinPreviousMarkers.clear();
                 return;
             }
+
             for (let i = 0; i < Poinsts.length; i++) {
                 const point = Poinsts[i];
                 const intensity = data.seismicIntensityList[i];
+                // 震度が前回と同じならスキップ
                 if (KyoushinPreviousData.has(i) && KyoushinPreviousData.get(i) === intensity) {
                     continue;
                 }
+                // 震度を更新
                 KyoushinPreviousData.set(i, intensity);
+                // 緯度経度変換
                 const YM_KM_C_data = YM_KM_C(point[0], point[1]);
+                // 既存マーカーがあれば削除
                 if (KyoushinPreviousMarkers.has(i)) {
                     KyoushinLayer.removeLayer(KyoushinPreviousMarkers.get(i));
                 }
+                // 新しいマーカーを作成
                 const marker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
                     color: getSeismicColor(intensity),
                     fillColor: getSeismicColor(intensity),
                     fillOpacity: 1,
                     radius: 100,
                 }).addTo(KyoushinLayer);
-
+                // クリックで詳細を表示
                 marker.on('click', () => {
-                    marker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
+                    marker.bindPopup(
+                        `type:${YM_KM_C_data.type} <br>` +
+                        `id:${YM_KM_C_data.id} <br>` +
+                        `地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>` +
+                        `震度:${intensity} ` +
+                        `<progress min="0" value="${intensity}" max="6.5"></progress>`
+                    ).openPopup();
                 });
+                // 新しいマーカーを記録
                 KyoushinPreviousMarkers.set(i, marker);
-                KyoushinPreviousMarkers.get(i)
             }
 
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
