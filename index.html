@@ -427,6 +427,10 @@
                 //EEW
                 const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
                 if (checkEEW) {
+                    map.flyTo([datas_bords.yahoo_datas.Wave_latitude, datas_bords.yahoo_datas.Wave_longitude], {
+                        animate: true,
+                        duration: 1
+                    });
                     text_speak(`緊急地震速報${datas_bords["yahoo_datas"]["regionName"]}で地震発生`);
                     playBeep(1000)
                 }
