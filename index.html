@@ -427,7 +427,7 @@
                 //EEW
                 const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
                 if (checkEEW) {
-                    map.flyTo([datas_bords.yahoo_datas.Wave_latitude, datas_bords.yahoo_datas.Wave_longitude], {
+                    map.setView([datas_bords.yahoo_datas.Wave_latitude, datas_bords.yahoo_datas.Wave_longitude], 7, {
                         animate: true,
                         duration: 1
                     });
