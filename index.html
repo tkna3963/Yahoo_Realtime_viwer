@@ -148,19 +148,19 @@
                 document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%)` || "--";
                 document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%)` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
-                
-                if(data.SFCI >= 0) {
+
+                if (data.SFCI >= 0) {
                     document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
                     const scale = document.querySelector('.scale');
                     const indicator = document.querySelector('.indicator');
                     const seismicValue = parseFloat(data.SFCI);
                     const position = Math.min(100, Math.max(0, (seismicValue / 9) * 100));
-                    indicator.style.left = `${position}%`;  
+                    indicator.style.left = `${position}%`;
                 } else {
                     document.getElementById("calclocate-intensity").textContent = `0(${data.SFCI})`;
                     indicator.style.left = `0%`;
                 }
-                
+
                 document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
                 document.getElementById("P-Stime").textContent = `約${Math.round(data.SFCD / 8)}秒` || "--";
             } else {
@@ -304,43 +304,64 @@
         let KyoushinPreviousData = new Map();
         let KyoushinPreviousMarkers = new Map();
         let shakeSquares = [];
-        let previousClosestPoint = null; // 直前の最寄り観測点
-        let locatenearmarker = null;
+        let previousClosestPoint = null;
+        let KyoushinMarker = null;
         function KyoushinMoniter(data, locate) {
             const Slist = data.seismicIntensityList.length;
             if (Slist !== Poinsts.length) {
                 KyoushinLayer.clearLayers();
                 KyoushinPreviousData.clear();
                 KyoushinPreviousMarkers.clear();
-                locatenearmarker.remove(); // 直前の最寄り観測点を削除
                 return;
             }
+
             for (let i = 0; i < Poinsts.length; i++) {
                 const point = Poinsts[i];
                 const intensity = data.seismicIntensityList[i];
-                if (KyoushinPreviousData.has(i) && KyoushinPreviousData.get(i) === intensity) {
-                    if (KyoushinPreviousMarkers.has(i)) {
-                        KyoushinLayer.removeLayer(KyoushinPreviousMarkers.get(i));
-                        KyoushinPreviousMarkers.delete(i);
+                const hasExistingMarker = KyoushinPreviousMarkers.has(i) && KyoushinPreviousMarkers.get(i) !== undefined;
+                if (data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
+                    if (KyoushinPreviousData.has(i) && KyoushinPreviousData.get(i) === intensity) {
+                        if (hasExistingMarker) {
+                            let marker = KyoushinPreviousMarkers.get(i);
+                            if (marker) {
+                                KyoushinLayer.removeLayer(marker);
+                                KyoushinPreviousMarkers.delete(i);
+                            }
+                        }
+                        continue;
                     }
-                    KyoushinPreviousData.delete(i);
+                } else {
+                    if (KyoushinPreviousData.has(i) && KyoushinPreviousData.get(i) === intensity) {
+                        if (hasExistingMarker) {
+                            let marker = KyoushinPreviousMarkers.get(i);
+                            if (marker) {
+                                KyoushinLayer.removeLayer(marker);
+                                KyoushinPreviousMarkers.delete(i);
+                            }
+                        }
+                        KyoushinPreviousData.delete(i);
+                    }
                 }
                 KyoushinPreviousData.set(i, intensity);
                 const YM_KM_C_data = YM_KM_C(point[0], point[1]);
-                if (KyoushinPreviousMarkers.has(i)) {
-                    KyoushinLayer.removeLayer(KyoushinPreviousMarkers.get(i));
+                if (hasExistingMarker) {
+                    let marker = KyoushinPreviousMarkers.get(i);
+                    if (marker && map.hasLayer(marker)) {
+                        KyoushinLayer.removeLayer(marker);
+                    }
                 }
-                const locatenearmarker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
+                const KyoushinMarker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
                     color: getSeismicColor(intensity),
                     fillColor: getSeismicColor(intensity),
                     fillOpacity: 1,
                     radius: 100,
                 }).addTo(KyoushinLayer);
-
-                locatenearmarker.on('click', () => {
-                    locatenearmarker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
+                KyoushinMarker.on('click', () => {
+                    KyoushinMarker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
                 });
-                KyoushinPreviousMarkers.set(i, locatenearmarker);
+                if (KyoushinMarker) {
+                    KyoushinPreviousMarkers.set(i, KyoushinMarker);
+                }
             }
 
             // 揺れ検知
@@ -395,12 +416,12 @@
                     });
                     // アイコンをマップに追加
                     // マーカーがすでに存在している前提
-                    if (locatenearmarker) {
+                    if (KyoushinMarker) {
                         // アイコンを更新
-                        locatenearmarker.setIcon(icon);
+                        KyoushinMarker.setIcon(icon);
                     } else {
                         // マーカーが存在しなければ新しく作成
-                        locatenearmarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
+                        KyoushinMarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
                     }
                 }
             }
@@ -427,7 +448,6 @@
                 }, 1000);
             });
         }
-
 
         let currentLocationMarker = null; // 現在地のマーカー
         //実行部
