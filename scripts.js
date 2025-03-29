@@ -196,19 +196,7 @@ function seismicIntensityConversion(char) {
     }
 }
 
-function getSeismicColor(intensity) {
-    const colorMapping = {
-        "-3": "#71a2cb", "-2.5": "#89afc8", "-2": "#90b3ca",
-        "-1.5": "#97b7cc", "-1": "#97b7cc", "-0.5": "#97b7cc",
-        "0": "#97b7cc", "0.5": "#90b3ca", "1": "#89afc8",
-        "1.5": "#71a2cb", "2": "#5ea7ac", "2.5": "#38a477",
-        "3": "#0fb02b", "3.5": "#f4e200", "4": "#fbc300",
-        "4.5": "#ffaf00", "5": "#f90", "5.5": "#ff7e00",
-        "6": "#ff6200", "6.5": "#fc4c02", "7": "#f53605"
-    };
 
-    return colorMapping[intensity] || "#000"; // 該当なしは黒
-}
 
 // 震度をラベルで返す関数（基準を未満に統一）
 function getShindoLabel(shindo) {
@@ -226,13 +214,24 @@ function getShindoLabel(shindo) {
 }
 
 // 震度に対応する色を返す関数（基準を未満に統一）
-function getColor(shindo) {
+function getSeismicColor(shindo) {
     let color;
-
-    if (shindo < 0.5) {
+    if (shindo < -3) {
+        color = "#97b7cc"; // 震度-3:
+    }else if (shindo < -2.5) {
+        color = "#90b3ca"; // 震度-2.5:
+    }else if (shindo < -2) {
+        color = "#89afc8"; // 震度-2以下:
+    } else if (shindo < -1.5) {
+        color = "#71a2cb"; // 震度-1.5:
+    } else if (shindo < -1.0) {
+        color = "#5ea7ac"; // 震度-1:
+    } else if (shindo < -0.5) {
+        color = "#38a477"; // 震度-0.5:
+    } else if (shindo < 0.5) {
         color = "#ADADAD"; // 震度0: グレー
     } else if (shindo < 1.5) {
-        color = "#FFFFFF"; // 震度1:  白
+        color = "#FFFFFF"; // 震度1: 白
     } else if (shindo < 2.5) {
         color = "#0066CC"; // 震度2: 青
     } else if (shindo < 3.5) {
@@ -247,14 +246,14 @@ function getColor(shindo) {
         color = "#E33977"; // 震度6弱: ピンク/マゼンタ
     } else if (shindo < 6.5) {
         color = "#E33977"; // 震度6強: ピンク/マゼンタ (同じ色で表示)
-    } else if (shindo <= 6.5) {
+    } else if (shindo <= 7.0) {
         color = "#5D1799"; // 震度7: 紫
     } else {
-        color = "#1c0142";
+        color = "#1c0142"; // それ以上 (未知の震度)
     }
-
     return color;
 }
+
 
 // 震度データを受け取り、震度別に地域数をカウントする関数
 function countSeismicIntensity(data) {
@@ -433,7 +432,7 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     // 基盤の速度（Vs = 400 m/s）の変換
     const maxSpeed400 = maxSpeed600 * 1.31;
     // 増幅率を使って最終的な速度を計算
-    const surfaceSpeed = maxSpeed400 * amplificationFactor;
+    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 *(Number(amplificationFactor)+ 0.15);
     // 震度を計算
     const intensity = parseFloat((2.68 + 1.72 * Math.log10(surfaceSpeed)).toFixed(2));
     // 結果を返す（震度、震央からの距離、最大速度、増幅率）

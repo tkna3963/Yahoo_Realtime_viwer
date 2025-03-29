@@ -44,6 +44,22 @@
                             style="font-family: 'DSEG7', sans-serif;">--</span>
                     </div>
                     <div class="info-item">
+                        <div class="seismic">
+                            <div class="scale">
+                                <div class="ticks">
+                                    <div class="tick"><span>1</span></div>
+                                    <div class="tick"><span>2</span></div>
+                                    <div class="tick"><span>3</span></div>
+                                    <div class="tick"><span>4</span></div>
+                                    <div class="tick"><span>5</span></div>
+                                    <div class="tick"><span>6</span></div>
+                                    <div class="tick"><span>7</span></div>
+                                </div>
+                                <div class="indicator" id="indicator"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-item">
                         <span class="label">予想最大震度</span>
                         <span class="value" id="calc-intensity" style="font-family: 'DSEG7', sans-serif;">--</span>
                     </div>
@@ -132,7 +148,19 @@
                 document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%)` || "--";
                 document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%)` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
-                document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
+                
+                if(data.SFCI >= 0) {
+                    document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
+                    const scale = document.querySelector('.scale');
+                    const indicator = document.querySelector('.indicator');
+                    const seismicValue = parseFloat(data.SFCI);
+                    const position = Math.min(100, Math.max(0, (seismicValue / 11) * 100));
+                    indicator.style.left = `${position}%`;  
+                } else {
+                    document.getElementById("calclocate-intensity").textContent = `0(${data.SFCI})`;
+                    indicator.style.left = `0%`;
+                }
+                
                 document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
                 document.getElementById("P-Stime").textContent = `約${Math.round(data.SFCD / 8)}秒` || "--";
             } else {
@@ -145,6 +173,7 @@
                 document.getElementById("arascalcintensity").textContent = "--";
                 document.getElementById("Epicentral-distance").textContent = "--";
                 document.getElementById("P-Stime").textContent = "--";
+                indicator.style.left = `0%`;
             }
         }
 
@@ -191,7 +220,7 @@
                             const intensity = areaSFCMap[featureCoordinates] || 0;
                             return {
                                 weight: 2,
-                                fillColor: intensity >= 0 ? getColor(intensity) : 'black',
+                                fillColor: intensity >= 0 ? getSeismicColor(intensity) : 'black',
                                 color: '#4b617d',
                                 fillOpacity: 0.7
                             };
@@ -276,13 +305,14 @@
         let KyoushinPreviousMarkers = new Map();
         let shakeSquares = [];
         let previousClosestPoint = null; // 直前の最寄り観測点
-        let marker = null;
+        let locatenearmarker = null;
         function KyoushinMoniter(data, locate) {
             const Slist = data.seismicIntensityList.length;
             if (Slist !== Poinsts.length) {
                 KyoushinLayer.clearLayers();
                 KyoushinPreviousData.clear();
                 KyoushinPreviousMarkers.clear();
+                locatenearmarker.remove(); // 直前の最寄り観測点を削除
                 return;
             }
             for (let i = 0; i < Poinsts.length; i++) {
@@ -300,19 +330,20 @@
                 if (KyoushinPreviousMarkers.has(i)) {
                     KyoushinLayer.removeLayer(KyoushinPreviousMarkers.get(i));
                 }
-                const marker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
+                const locatenearmarker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
                     color: getSeismicColor(intensity),
                     fillColor: getSeismicColor(intensity),
                     fillOpacity: 1,
                     radius: 100,
                 }).addTo(KyoushinLayer);
 
-                marker.on('click', () => {
-                    marker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
+                locatenearmarker.on('click', () => {
+                    locatenearmarker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
                 });
-                KyoushinPreviousMarkers.set(i, marker);
+                KyoushinPreviousMarkers.set(i, locatenearmarker);
             }
 
+            // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
             shakeSquares.forEach(square => map.removeLayer(square));
             let first100Points = ShakeDetectionPoint.slice(0, 5);
@@ -364,12 +395,12 @@
                     });
                     // アイコンをマップに追加
                     // マーカーがすでに存在している前提
-                    if (marker) {
+                    if (locatenearmarker) {
                         // アイコンを更新
-                        marker.setIcon(icon);
+                        locatenearmarker.setIcon(icon);
                     } else {
                         // マーカーが存在しなければ新しく作成
-                        marker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
+                        locatenearmarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
                     }
                 }
             }
@@ -438,16 +469,6 @@
                 const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
                 if (checkEEWUpdates) {
                     playBeep(900)
-                }
-                let x = (Math.round(datas_bords.SFCD / 4)) - calculateTimeDifference(
-                    parseCustomDate(datas_bords["yahoo_datas"]["get_date"]),
-                    parseCustomDate(datas_bords.yahoo_datas.originTime)
-                );
-                if (0 <= x && x <= 10) {
-                    vibrate(100);
-                }
-                if (-10 <= x && x <= 0) {
-                    vibrate(1000);
                 }
             } else {
                 EEWColoringMap(null);

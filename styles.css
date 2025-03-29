@@ -347,3 +347,76 @@ textarea::placeholder {
     font-style: normal;
     unicode-range: U+30-49;
 }
+
+.seismic {
+    background: #242424;
+    text-align: center;
+    width: 100%;
+}
+
+.scale {
+    height: 30px;
+    width: 100%;
+    background: linear-gradient(to right,
+            #ADADAD 0%,
+            /* 震度0: グレー */
+            #FFFFFF 10%,
+            /* 震度1: 白 */
+            #0066CC 20%,
+            /* 震度2: 青 */
+            #00A652 30%,
+            /* 震度3: 緑 */
+            #E6C300 40%,
+            /* 震度4: 黄色 */
+            #DC6B00 50%,
+            /* 震度5弱: オレンジ */
+            #DC6B00 60%,
+            /* 震度5強: オレンジ */
+            #E33977 70%,
+            /* 震度6弱: ピンク */
+            #E33977 80%,
+            /* 震度6強: ピンク */
+            #5D1799 90%,
+            /* 震度7: 紫 */
+            #1c0142 100%
+            /* 震度7以上: 濃い紫 */
+        );
+    position: relative;
+}
+
+.indicator {
+    position: absolute;
+    width: 1.5px;
+    height: 30px;
+    background: black;
+    left: 0;
+    transition: left 0.3s;
+}
+
+.ticks {
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 5px;
+    margin-bottom: 10px;
+}
+
+.ticks {
+    position: absolute;
+    top: -20px; /* スケールの上に配置 */
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    z-index: 2; /* 他の要素より前面に */
+}
+
+.tick span {
+    display: block;
+    font-size: 14px;
+    color: gray;
+    margin-top: 5px;
+}
