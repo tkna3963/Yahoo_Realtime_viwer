@@ -108,6 +108,28 @@ function checkDuplicateData(Data) {
     }
 }
 
+let previousType = null;
+function IsEEWType(data) {
+    let newType;
+    if (data.calcIntensity === "6-" || data.calcIntensity === "6+" || data.calcIntensity === "7") {
+        newType = "緊急地震速報(特別警報)";
+    } else if (data.calcIntensity === "5-" || data.calcIntensity === "5+") {
+        newType = "緊急地震速報(警報)";
+    } else {
+        newType = "緊急地震速報(予報)";
+    }
+    // 以前の警報レベルを考慮して、ダウングレードを防ぐ
+    if (previousType === "緊急地震速報(特別警報)" && newType !== "緊急地震速報(特別警報)") {
+        return previousType; // 特別警報なら維持
+    }
+    if (previousType === "緊急地震速報(警報)" && newType === "緊急地震速報(予報)") {
+        return previousType; // 警報が出ていた場合、予報には戻さない
+    }
+    previousType = newType;
+    return newType;
+}
+
+
 function Location_information_setup() {
     if (currentLocation.latitude && currentLocation.longitude) {
         console.log("位置情報が設定されました");
@@ -218,9 +240,9 @@ function getSeismicColor(shindo) {
     let color;
     if (shindo < -3) {
         color = "#97b7cc"; // 震度-3:
-    }else if (shindo < -2.5) {
+    } else if (shindo < -2.5) {
         color = "#90b3ca"; // 震度-2.5:
-    }else if (shindo < -2) {
+    } else if (shindo < -2) {
         color = "#89afc8"; // 震度-2以下:
     } else if (shindo < -1.5) {
         color = "#71a2cb"; // 震度-1.5:
@@ -432,7 +454,7 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     // 基盤の速度（Vs = 400 m/s）の変換
     const maxSpeed400 = maxSpeed600 * 1.31;
     // 増幅率を使って最終的な速度を計算
-    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 *(Number(amplificationFactor)+ 0.15);
+    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 * (Number(amplificationFactor) + 0.15);
     // 震度を計算
     const intensity = parseFloat((2.68 + 1.72 * Math.log10(surfaceSpeed)).toFixed(2));
     // 結果を返す（震度、震央からの距離、最大速度、増幅率）
