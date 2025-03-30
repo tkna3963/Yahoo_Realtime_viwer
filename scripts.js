@@ -86,7 +86,6 @@ function objectToJsonText(obj, space = 2) {
 }
 
 const TemporaryDataRecordList = [];
-
 function checkDuplicateData(Data) {
     TemporaryDataRecordList.push(Data);
     const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -108,8 +107,9 @@ function checkDuplicateData(Data) {
     }
 }
 
-let previousType = null;
+let previousTypes = {}; // reportIdごとの警報レベルを管理
 function IsEEWType(data) {
+    const reportId = data.reportId;
     let newType;
     if (data.calcIntensity === "6-" || data.calcIntensity === "6+" || data.calcIntensity === "7") {
         newType = "緊急地震速報(特別警報)";
@@ -118,17 +118,23 @@ function IsEEWType(data) {
     } else {
         newType = "緊急地震速報(予報)";
     }
-    // 以前の警報レベルを考慮して、ダウングレードを防ぐ
+    // reportIdごとに以前の警報レベルを管理
+    if (!previousTypes[reportId]) {
+        previousTypes[reportId] = newType;
+        return newType;
+    }
+    const previousType = previousTypes[reportId];
+    // 以前の警報レベルを考慮してダウングレードを防ぐ
     if (previousType === "緊急地震速報(特別警報)" && newType !== "緊急地震速報(特別警報)") {
-        return previousType; // 特別警報なら維持
+        return previousType;
     }
     if (previousType === "緊急地震速報(警報)" && newType === "緊急地震速報(予報)") {
-        return previousType; // 警報が出ていた場合、予報には戻さない
+        return previousType;
     }
-    previousType = newType;
+    // 更新
+    previousTypes[reportId] = newType;
     return newType;
 }
-
 
 function Location_information_setup() {
     if (currentLocation.latitude && currentLocation.longitude) {
