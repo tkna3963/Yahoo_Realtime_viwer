@@ -524,7 +524,7 @@ function YM_KM_C(latitude, longitude) {
         }
         visitedSites.add(km[1]);  // 訪れたサイトを記録
     }
-    if (closest_site && closest_site[0] === "K-NET") {
+    if (closest_site) {
         let result = {
             id: closest_site[1],
             latitude: latitude,
