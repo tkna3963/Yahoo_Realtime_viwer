@@ -498,27 +498,34 @@ function loadKMData() {
         KM_data = loadCSV("Required_files/sitepub_all_sj.csv");
     }
 }
+
 function YM_KM_C(latitude, longitude) {
     let cacheKey = `${latitude},${longitude}`;
     if (cache.has(cacheKey)) {
-        return cache.get(cacheKey);
+        return cache.get(cacheKey);  // キャッシュがある場合はそれを返す
     }
     loadKMData();
     let min_dist = Infinity;
     let closest_site = null;
+    // 同じ場所が何度も選ばれないようにリストから除外
+    let visitedSites = new Set();  // 訪れたサイトを追跡
     for (let km of KM_data) {
         let km_lat = parseFloat(km[4]);
         let km_lon = parseFloat(km[5]);
         if (isNaN(km_lat) || isNaN(km_lon)) continue;
+        // すでに訪れたサイトならスキップ
+        if (visitedSites.has(km[1])) {
+            continue;
+        }
         let dist = calculateDistance([latitude, longitude], [km_lat, km_lon]);
         if (dist < min_dist) {
             min_dist = dist;
             closest_site = km;
         }
+        visitedSites.add(km[1]);  // 訪れたサイトを記録
     }
-    if (closest_site) {
+    if (closest_site && closest_site[0] === "K-NET") {
         let result = {
-            type: closest_site[0],
             id: closest_site[1],
             latitude: latitude,
             longitude: longitude,
@@ -527,7 +534,8 @@ function YM_KM_C(latitude, longitude) {
             KM_lon: closest_site[5],
             distance: min_dist
         };
-        cache.set(cacheKey, result);
+        cache.set(cacheKey, result);  // キャッシュに格納
+        console.log(result);
         return result;
     } else {
         console.log("近い地点が見つかりませんでした");

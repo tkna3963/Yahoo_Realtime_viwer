@@ -336,7 +336,7 @@
                     radius: 100,
                 }).addTo(KyoushinLayer);
                 newMarker.on('click', () => {
-                    newMarker.bindPopup(`type:${YM_KM_C_data.type} <br>id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
+                    newMarker.bindPopup(`id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
                 });
                 KyoushinPreviousMarkers.set(i, newMarker);
             }
