@@ -302,7 +302,7 @@ function countSeismicIntensity(data) {
         else if (value < 5.5) shindo = "震度5強";
         else if (value < 6.0) shindo = "震度6弱";
         else if (value < 6.5) shindo = "震度6強";
-        else if (value <= 6.5) shindo = "震度7";
+        else if (6.5 <= value) shindo = "震度7";
 
         bins[shindo]++;
     });
@@ -579,9 +579,9 @@ function datas_bord() {
 }
 
 
-const threshold = 1; // イベントを検出するための強度の閾値
+const threshold = 0.5; // イベントを検出するための強度の閾値
 const historyWindow = 10; // 過去の秒数 (10秒)
-const minMagnitudeChange = 1.0; // 最小震度変化 (検出基準)
+const minMagnitudeChange = 0.5; // 最小震度変化 (検出基準)
 function detectEvents(intensityData, locations) {
     const events = [];
     const eventMap = new Map(); // イベントIDでイベントを追跡
@@ -624,7 +624,7 @@ function detectEvents(intensityData, locations) {
                     locations: [location],
                 });
             }
-            // イベント情報を配列に追加 (位置と時刻)
+            // イベント情報を配列に追加 (位置と地名と時刻)
             events.push([location[0], location[1], currentTime]);
         }
         // 最後の強度を更新

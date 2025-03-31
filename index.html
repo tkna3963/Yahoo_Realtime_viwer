@@ -40,7 +40,8 @@
                     </div>
                     <div class="info-item">
                         <span class="label">最大強震震度</span>
-                        <span class="value" id="max-intensity" style="font-size: 20px !important; color:rgb(76, 76, 201); font-family: 'DSEG7 ', sans-serif;">--</span>
+                        <span class="value" id="max-intensity"
+                            style="font-size: 20px !important; color:rgb(76, 76, 201); font-family: 'DSEG7 ', sans-serif;">--</span>
                     </div>
                     <div class="info-item">
                         <span class="label">現在地予想震度</span>
@@ -65,7 +66,8 @@
                     </div>
                     <div class="info-item">
                         <span class="label">予想最大震度</span>
-                        <span class="value" id="calc-intensity" style="color:yellow; font-family: 'DSEG7', sans-serif;">--</span>
+                        <span class="value" id="calc-intensity"
+                            style="color:yellow; font-family: 'DSEG7', sans-serif;">--</span>
                     </div>
                 </div>
                 <div class="magnitude-info">
@@ -91,6 +93,7 @@
                     <span class="value" id="arascalcintensity">--</span>
                 </div>
                 <button onclick="openSubWindow()">Kyoushin_Moniter</button>
+                <textarea id="Devtesxtarea" readonly>取得中...</textarea>
             </div>
         </div>
         <div class="panel center-panel">
@@ -313,7 +316,6 @@
                 const point = Poinsts[i];
                 const intensity = data.seismicIntensityList[i];
                 if (KyoushinPreviousMarkers.has(i)) {
-                    if (KyoushinPreviousData.has(i) >=0.5){}
                     let oldMarker = KyoushinPreviousMarkers.get(i);
                     if (oldMarker) {
                         KyoushinLayer.removeLayer(oldMarker);
@@ -342,12 +344,12 @@
             // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
             shakeSquares.forEach(square => map.removeLayer(square));
-            let first100Points = ShakeDetectionPoint.slice(-10);
+            let first100Points = ShakeDetectionPoint.slice(-100);
             first100Points.forEach(([lat, lon, timestamp], index) => {
                 let baseSize = 1000;
                 let bounds = [
                     [lat - 0.2, lon - 0.2],
-                    [lat + 0.2, lon + 0.2]   
+                    [lat + 0.2, lon + 0.2]
                 ];
                 let square = L.rectangle(bounds, {
                     color: 'white',
@@ -360,10 +362,6 @@
                 }, 500);
                 if (ShakeDetectionPoint.length >= 3 & ShakeDetectionPoint.length <= 4 & data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
                     playBeep(1440)
-                    map.setView([lat, lon], 7, {
-                        animate: true,
-                        duration: 1
-                    });
                 }
             });
 
@@ -382,7 +380,7 @@
                     const YM_KM_C_data = YM_KM_C(closestPoint[0], closestPoint[1]);
                     const intensity = data.seismicIntensityList[Poinsts.indexOf(closestPoint)];
                     const icon = L.divIcon({
-                        className: 'custom-icon', 
+                        className: 'custom-icon',
                         html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`, // アイコンの中身
                         iconSize: [5, 5],
                         iconAnchor: [5, 5],
