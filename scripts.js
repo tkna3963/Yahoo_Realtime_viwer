@@ -589,7 +589,7 @@ function datas_bord() {
 
 const threshold = 0.5; // イベントを検出するための強度の閾値
 const historyWindow = 10; // 過去の秒数 (10秒)
-const minMagnitudeChange = 0.5; // 最小震度変化 (検出基準)
+const minMagnitudeChange =1; // 最小震度変化 (検出基準)
 function detectEvents(intensityData, locations) {
     const events = [];
     const eventMap = new Map(); // イベントIDでイベントを追跡

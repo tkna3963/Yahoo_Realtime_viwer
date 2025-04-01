@@ -344,8 +344,8 @@
             // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
             shakeSquares.forEach(square => map.removeLayer(square));
-            let first100Points = ShakeDetectionPoint.slice(-100);
-            first100Points.forEach(([lat, lon, timestamp], index) => {
+            let firstPoints = ShakeDetectionPoint.slice(-20);
+            firstPoints.forEach(([lat, lon, timestamp], index) => {
                 let baseSize = 1000;
                 let bounds = [
                     [lat - 0.2, lon - 0.2],
@@ -450,7 +450,7 @@
                         animate: true,
                         duration: 1
                     });
-                    text_speak(`緊急地震速報　震おう:${datas_bords.yahoo_datas.regionName}`);
+                    text_speak(`${IsEEWType(datas_bords.yahoo_datas)}　震おう:${datas_bords.yahoo_datas.regionName}`);
                     playBeep(1000)
                 }
                 //続報音
@@ -458,6 +458,21 @@
                 if (checkEEWUpdates) {
                     playBeep(900)
                 }
+
+                //レベルup音
+                const checkLevel=checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}${IsEEWType(datas_bords["yahoo_datas"]["calcIntensity"])}`)
+                if(checkLevel){
+                    text_speak(IsEEWType(datas_bords["yahoo_datas"]["calcIntensity"]))
+                    playBeep(700)
+                }
+    
+                //最終報音
+                const checkfinalUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}${datas_bords["yahoo_datas"]["isFinal"]}`)
+                if (checkfinalUpdates) {
+                    text_speak(`第${datas_bords["yahoo_datas"]["reportNum"]}報(最終報) 震おう:${datas_bords.yahoo_datas.regionName}　震度:${datas_bords.yahoo_datas.calcIntensity} マグニチュード:${datas_bords.yahoo_datas.magnitude}`)
+                    playBeep(800)
+                }
+
             } else {
                 EEWColoringMap(null);
                 EEWCircle(null);
