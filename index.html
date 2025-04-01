@@ -469,7 +469,7 @@
                 //最終報音
                 const checkfinalUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}${datas_bords["yahoo_datas"]["isFinal"]}`)
                 if (checkfinalUpdates) {
-                    text_speak(`第${datas_bords["yahoo_datas"]["reportNum"]}報(最終報) 震おう:${datas_bords.yahoo_datas.regionName}　震度:${datas_bords.yahoo_datas.calcIntensity} マグニチュード:${datas_bords.yahoo_datas.magnitude}`)
+                    text_speak(`第${datas_bords["yahoo_datas"]["reportNum"]}報(最終報)`)
                     playBeep(800)
                 }
 
