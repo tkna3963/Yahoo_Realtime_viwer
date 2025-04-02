@@ -535,7 +535,6 @@ function YM_KM_C(latitude, longitude) {
             distance: min_dist
         };
         cache.set(cacheKey, result);  // キャッシュに格納
-        console.log(result);
         return result;
     } else {
         console.log("近い地点が見つかりませんでした");
@@ -563,7 +562,7 @@ function datas_bord() {
         var SFCD = Math.round(SFC.epicenterDistance)
         results_datalist.SFCI = SFCI;
         results_datalist.SFCD = SFCD;
-        centers = loadJSON("Required_files/centerARVs.json")
+        centers = loadJSON("Required_files\\centerARVs.json")
         for (const center of centers.centers) {
             const AreaSFC = calculateDistanceAttenuation(
                 YahooDatas.magnitude,

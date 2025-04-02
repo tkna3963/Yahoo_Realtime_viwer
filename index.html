@@ -420,8 +420,8 @@
         let currentLocationMarker = null;
         //実行部
         function main() {
+            console.time()
             const datas_bords = datas_bord();
-            console.log(datas_bords);
             const locate_latitude = datas_bords.latitude || 0;
             const locate_longitude = datas_bords.longitude || 0;
             if (locate_latitude !== 0 && locate_longitude !== 0) {
@@ -477,6 +477,7 @@
                 EEWColoringMap(null);
                 EEWCircle(null);
             }
+            console.timeEnd()
         }
 
         function startup() {
