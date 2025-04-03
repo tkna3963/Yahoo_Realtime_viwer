@@ -532,7 +532,7 @@ function YM_KM_C(latitude, longitude) {
             closest_KM_site: closest_site[2],
             KM_lat: closest_site[4],
             KM_lon: closest_site[5],
-            distance: min_dist
+            distance: min_dist.toFixed(2)
         };
         cache.set(cacheKey, result);  // キャッシュに格納
         return result;
