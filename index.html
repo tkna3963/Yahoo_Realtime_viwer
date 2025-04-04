@@ -14,6 +14,7 @@
             height: 100vh;
             margin: 0;
         }
+
         .container {
             background-color: #ffffff;
             padding: 40px;
@@ -22,11 +23,13 @@
             width: 400px;
             text-align: center;
         }
+
         h2 {
             color: #333;
             font-size: 24px;
             margin-bottom: 20px;
         }
+
         input,
         button {
             width: 100%;
@@ -38,12 +41,14 @@
             box-sizing: border-box;
             transition: all 0.3s ease;
         }
+
         input:focus,
         button:focus {
             outline: none;
             border-color: #4a90e2;
             box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
         }
+
         button {
             background-color: #4a90e2;
             color: white;
@@ -51,14 +56,17 @@
             font-weight: bold;
             transition: background-color 0.3s ease;
         }
+
         button:hover {
             background-color: #357abd;
         }
+
         a {
             text-decoration: none;
             color: #4a90e2;
             font-size: 14px;
         }
+
         a:hover {
             text-decoration: underline;
         }
@@ -84,7 +92,7 @@
                     window.location.href = url; // 自動遷移
                 }
             } catch (error) {
-                console.error("Error checking URL:", error);
+                console.log("Error checking URL:", error); // エラーハンドリング
             }
         }
         passwordInput.addEventListener("input", async () => {
@@ -96,7 +104,10 @@
             const url = `https://tkna3963.github.io/Yahoo_Realtime_viwer/${hash}.html`;
             console.log(url); // デバッグ用
             // チェックして存在すれば自動遷移
-            checkAndRedirect(url);
+            //最初の5文字があっていればチェックする
+            if(hash.substring(0, 5) == "cdc37") {
+                checkAndRedirect(url);
+            }
         });
     </script>
 </body>
