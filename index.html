@@ -93,7 +93,7 @@
                 return;
             }
             const hash = await hashText(password); // 非同期でハッシュを取得
-            const url = `http://127.0.0.1:5500/${hash}.html`;
+            const url = `https://tkna3963.github.io/Yahoo_Realtime_viwer/${hash}.html`;
             console.log(url); // デバッグ用
             // チェックして存在すれば自動遷移
             checkAndRedirect(url);
