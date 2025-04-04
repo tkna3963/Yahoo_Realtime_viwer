@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="icon" href="Required_files/epicenter.png">
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+
 </head>
 
 <body>
@@ -92,8 +94,8 @@
                     <span class="label">各地の予想震度:</span>
                     <span class="value" id="arascalcintensity">--</span>
                 </div>
+                <input type="checkbox" id="Colorcheckbox" checked>
                 <button onclick="openSubWindow()">Kyoushin_Moniter</button>
-                <textarea id="Devtesxtarea" readonly>取得中...</textarea>
             </div>
         </div>
         <div class="panel center-panel">
@@ -192,28 +194,33 @@
             attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
         }).addTo(map);
 
-        let ColoringLayer = null;
+        let coloringLayer = null;
+        let markerLayer = null;
         function EEWColoringMap(data) {
             fetch('Required_files/japanmap.json')
                 .then(response => response.json())
                 .then(geojsonData => {
-                    if (ColoringLayer) {
-                        ColoringLayer.clearLayers();
+                    if (coloringLayer) {
+                        coloringLayer.clearLayers();
                     } else {
-                        ColoringLayer = L.geoJSON(null).addTo(map);
+                        coloringLayer = L.geoJSON(null).addTo(map);
                     }
                     if (data === null) {
-                        ColoringLayer.addData(geojsonData);
-                        ColoringLayer.setStyle({
+                        coloringLayer.addData(geojsonData);
+                        coloringLayer.setStyle({
                             color: '#000',
                             weight: 1,
                             fillColor: 'gray',
                             fillOpacity: 0.7
                         });
-                        ColoringLayer.bringToBack();
-                    } else {
+                        coloringLayer.bringToBack();
+                        if (markerLayer) {
+                            map.removeLayer(markerLayer);
+                            markerLayer = null;
+                        }
+                    } else if (Colorcheckbox.checked) {
                         document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
-                        playBeep(400)
+                        playBeep(400);
                         const areaSFCMap = {}, areaNameMap = {}, ArvMap = {}, DBLMap = {};
                         geojsonData.features.forEach((feature, index) => {
                             const coords = JSON.stringify(feature.geometry.coordinates);
@@ -222,9 +229,8 @@
                             ArvMap[coords] = data[2][index] || 0;
                             DBLMap[coords] = data[3][index] || 0;
                         });
-                        ColoringLayer.addData(geojsonData);
-                        ColoringLayer.bringToBack();
-                        ColoringLayer.setStyle(feature => {
+                        coloringLayer.addData(geojsonData);
+                        coloringLayer.setStyle(feature => {
                             const featureCoordinates = JSON.stringify(feature.geometry.coordinates);
                             const intensity = areaSFCMap[featureCoordinates] || 0;
                             return {
@@ -234,7 +240,52 @@
                                 fillOpacity: 0.7
                             };
                         });
-                        ColoringLayer.bringToBack();
+                        coloringLayer.bringToBack();
+                        if (markerLayer) {
+                            map.removeLayer(markerLayer);
+                            markerLayer = null;
+                        }
+                    } else {
+                        document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
+                        playBeep(400);
+                        coloringLayer.addData(geojsonData);
+                        coloringLayer.setStyle({
+                            color: '#000',
+                            weight: 1,
+                            fillColor: 'gray',
+                            fillOpacity: 0.7
+                        });
+                        coloringLayer.bringToBack();
+                        const featureCenters = geojsonData.features.map(feature => {
+                            const coords = feature.geometry.coordinates.flat(Infinity);
+                            let latSum = 0, lngSum = 0, count = 0;
+                            for (let i = 0; i < coords.length; i += 2) {
+                                lngSum += coords[i];
+                                latSum += coords[i + 1];
+                                count++;
+                            }
+                            return [latSum / count, lngSum / count];
+                        });
+                        if (markerLayer) {
+                            markerLayer.clearLayers();
+                        } else {
+                            markerLayer = L.layerGroup().addTo(map);
+                        }
+                        geojsonData.features.forEach((feature, index) => {
+                            const intensity = data[0][index] || 0;
+                            if (intensity >= 0) {
+                                const center = featureCenters[index];
+                                const color = getSeismicColor(intensity);
+                                const radius = 2;
+                                const marker = L.circleMarker(center, {
+                                    radius: radius,
+                                    color: getSeismicColor(intensity),
+                                    fillColor: color,
+                                    fillOpacity: 0.9
+                                });
+                                marker.addTo(markerLayer);
+                            }
+                        });
                     }
                 });
         }
@@ -307,6 +358,12 @@
         function KyoushinMoniter(data, locate) {
             const Slist = data.seismicIntensityList.length;
             if (Slist !== Poinsts.length) {
+                KyoushinLayer.clearLayers();
+                KyoushinPreviousData.clear();
+                KyoushinPreviousMarkers.clear();
+                return;
+            }
+            if (Colorcheckbox.checked !== true && data.yahoo_datas.situation === "EEW_has_been_issued") {
                 KyoushinLayer.clearLayers();
                 KyoushinPreviousData.clear();
                 KyoushinPreviousMarkers.clear();
