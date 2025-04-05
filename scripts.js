@@ -159,7 +159,6 @@ function parseCustomDate(dateStr) {
 
     const [_, year, day, hour, minute, second] = match.map(Number);
 
-    // 月は手動で処理（2つ目の「年」が「月」の誤記に由来している前提p）
     const month = parseInt(dateStr.match(/年(\d{2})年/)[1], 10);
 
     // Dateオブジェクトを作成
@@ -363,10 +362,12 @@ function yahooRealtimeData() {
     if (timeMachineValue === "") {
         const currentDateTime = new Date();
         set_time = new Date(currentDateTime.getTime() - 3 * 1000);
+        document.getElementById("get_time").style.color = "white";
     } else {
         set_time = new Date(timeMachineValue);
         set_time_counter += 1;
         set_time = new Date(set_time.getTime() + set_time_counter * 1000);
+        document.getElementById("get_time").style.color = "yellow";
     }
     const url_time_date = Yahoo_Time_date_fromat(set_time); // Assuming this formats the date correctly.
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${url_time_date}.json`;
@@ -542,6 +543,36 @@ function YM_KM_C(latitude, longitude) {
     }
 }
 
+function P2Ptime() {
+    const p2purl = "https://api.p2pquake.net/v2/history?codes=551&limit=100";
+    const P2P_json = loadJSON(p2purl);
+    var times = P2P_json.filter(item => item.earthquake?.time && item.earthquake.maxScale >= 30).map(item => item.earthquake.time);
+    const filteredTimes = times.filter(time => time !== undefined);
+    const uniqueTimes = [...new Set(filteredTimes)];
+    const sortedTimes = uniqueTimes.sort((a, b) => new Date(b) - new Date(a)); // 降順にソート
+    return sortedTimes;
+}
+
+function history_jump(P2P_time) {
+    const listContainer = document.querySelector('.occurrence_list');
+    // すでに存在する要素を削除
+    while (listContainer.firstChild) {
+        listContainer.removeChild(listContainer.firstChild);    }
+    P2P_time.forEach(time => {
+        const button = document.createElement('button');  // <button>を作成
+        button.textContent = time;
+        // クリックイベント
+        button.addEventListener('click', () => {
+            const timeMachineInput = document.getElementById('time_machine');
+            timeMachineInput.value = time;
+            set_time_counter = 30;
+        });
+        // ボタンをリストに追加
+        listContainer.appendChild(button);
+    });
+}
+
+
 function datas_bord() {
     const results_datalist = {};
     const AreaSFClist = [];
@@ -554,6 +585,7 @@ function datas_bord() {
     results_datalist.MAXseismicIntensity = Math.max(...YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char)));
     results_datalist.latitude = currentLocation.latitude;
     results_datalist.longitude = currentLocation.longitude;
+    results_datalist.P2Ptime = P2Ptime();
     if (currentLocation.latitude, currentLocation.longitude, YahooDatas.magnitude) {
         var SFGIPJ = surfaceGroundInformationProvisionAPI(currentLocation.latitude, currentLocation.longitude)
         var SFGIPARV = SFGIPJ.features[0].properties.ARV
@@ -588,7 +620,7 @@ function datas_bord() {
 
 const threshold = 0.5; // イベントを検出するための強度の閾値
 const historyWindow = 10; // 過去の秒数 (10秒)
-const minMagnitudeChange =1; // 最小震度変化 (検出基準)
+const minMagnitudeChange = 1; // 最小震度変化 (検出基準)
 function detectEvents(intensityData, locations) {
     const events = [];
     const eventMap = new Map(); // イベントIDでイベントを追跡

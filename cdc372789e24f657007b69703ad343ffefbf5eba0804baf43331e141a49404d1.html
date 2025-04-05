@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="icon" href="Required_files/epicenter.png">
     <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <link rel="icon" href="Required_files/epicenter.png">
 
 </head>
 
@@ -94,8 +94,9 @@
                     <span class="label">各地の予想震度:</span>
                     <span class="value" id="arascalcintensity">--</span>
                 </div>
-                <input type="checkbox" id="Colorcheckbox" checked>
                 <button onclick="openSubWindow()">Kyoushin_Moniter</button>
+                <div class="occurrence_list">
+                </div>
             </div>
         </div>
         <div class="panel center-panel">
@@ -152,6 +153,7 @@
         function DetailedInformationPrinter(data) {
             document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
+                document.getElementById("info_display").textContent = `発生時刻:${data.yahoo_datas.originTime.slice(-10)}\n${data.yahoo_datas.situation}\n${IsEEWType(data.yahoo_datas)}\n震央地名:${data.yahoo_datas.regionName}\n震度:${data.yahoo_datas.calcIntensity}\nM:${data.yahoo_datas.magnitude}\n深さ:${data.yahoo_datas.depth}km\n`|| "なし";
                 document.getElementById("EEWTYPE").textContent = IsEEWType(data.yahoo_datas) || "--";
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
@@ -185,6 +187,8 @@
                 document.getElementById("Epicentral-distance").textContent = "--";
                 document.getElementById("P-Stime").textContent = "--";
                 indicator.style.left = `0%`;
+
+                document.getElementById("info_display").textContent =``;
             }
         }
 
@@ -193,6 +197,23 @@
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
         }).addTo(map);
+
+        var checkboxControl = L.control({ position: 'topright' });
+        checkboxControl.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'leaflet-control-layers');
+            div.innerHTML = '<input type="checkbox" id="Colorcheckbox" checked>予想震度1以上を塗る';
+            div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
+            return div;
+        };
+        checkboxControl.addTo(map);
+
+        var info_display = L.control({ position: 'topright' });
+        info_display.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info-display');
+            div.innerHTML = '<textarea id="info_display" style="background:rgb(0,0,0,0.2)"></textarea>';
+            return div;
+        };
+        info_display.addTo(map);
 
         let coloringLayer = null;
         let markerLayer = null;
@@ -491,9 +512,12 @@
             InformationPrinter(datas_bords);
             DetailedInformationPrinter(datas_bords);
             KyoushinMoniter(datas_bords, [locate_latitude, locate_longitude]);
+            history_jump(datas_bords.P2Ptime)
             document.getElementById("get_time").textContent = datas_bords.yahoo_datas.get_date;
             document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
+
             document.getElementById("location").textContent = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
+
             if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
                 if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
                     EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
