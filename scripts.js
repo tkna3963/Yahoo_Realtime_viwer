@@ -672,3 +672,17 @@ function detectEvents(intensityData, locations) {
     return events;
 }
 
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(reg => {
+            const IP = window.location.origin; // http(s)://xxx.xxx.xxx.xxx
+            if (reg.active) {
+                reg.active.postMessage({ type: 'SET_HOST', host: IP });
+            } else {
+                navigator.serviceWorker.ready.then(sw => {
+                    sw.active.postMessage({ type: 'SET_HOST', host: IP });
+                });
+            }
+        });
+}
