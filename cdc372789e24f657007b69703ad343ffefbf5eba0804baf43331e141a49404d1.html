@@ -12,6 +12,8 @@
     <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
     <link rel="icon" href="Required_files/epicenter.png">
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#317EFB">
 </head>
 
 <body>
@@ -561,6 +563,16 @@
         }
         function openSubWindow() {
             window.open("sub_window.html", "_blank", "width=342px, height=440px");
+        }
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker 登録成功:', reg.scope))
+                    .catch(err => console.error('Service Worker 登録失敗:', err));
+            });
         }
     </script>
 </body>

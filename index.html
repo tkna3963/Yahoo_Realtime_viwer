@@ -75,7 +75,6 @@
         <input type="email" id="name_input" placeholder="名前を入力してください">
         <input type="password" id="password_input" placeholder="パスワードを入力してください">
         <a id="hashlink" href="index.html"></a>
-        <div id="hint" class="hint">ヒント：名前に数字が入ってるかも？</div>
     </div>
 
     <script>
@@ -88,7 +87,6 @@
         }
 
         const passwordInput = document.getElementById("password_input");
-        const hintElement = document.getElementById("hint");
 
         async function checkAndRedirect(url) {
             try {
@@ -119,13 +117,6 @@
                 checkAndRedirect(url);
             }
 
-            // 部分一致でヒント表示
-            const matchCount = [...hash].slice(0, 3).filter((char, i) => char === correctPrefix[i]).length;
-            if (matchCount >= 2 && matchCount < 5) {
-                hintElement.style.display = "block";
-            } else {
-                hintElement.style.display = "none";
-            }
         });
 
         // Enterキー対応
