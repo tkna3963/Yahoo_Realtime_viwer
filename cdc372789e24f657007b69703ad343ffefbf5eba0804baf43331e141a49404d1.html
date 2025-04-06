@@ -95,7 +95,8 @@
                     <span class="value" id="arascalcintensity">--</span>
                 </div>
                 <button onclick="openSubWindow()">Kyoushin_Moniter</button>
-                <div class="occurrence_list">
+                <div class="data-point">
+                    <div class="occurrence_list"></div>
                 </div>
             </div>
         </div>
@@ -153,7 +154,7 @@
         function DetailedInformationPrinter(data) {
             document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
             if (data.yahoo_datas.situation === "EEW_has_been_issued") {
-                document.getElementById("info_display").textContent = `発生時刻:${data.yahoo_datas.originTime.slice(-10)}\n${data.yahoo_datas.situation}\n${IsEEWType(data.yahoo_datas)}\n震央地名:${data.yahoo_datas.regionName}\n震度:${data.yahoo_datas.calcIntensity}\nM:${data.yahoo_datas.magnitude}\n深さ:${data.yahoo_datas.depth}km\n`|| "なし";
+                document.getElementById("info_display").textContent = `発生時刻:${data.yahoo_datas.originTime.slice(-10)}\n${data.yahoo_datas.situation}\n${IsEEWType(data.yahoo_datas)}\n震央地名:${data.yahoo_datas.regionName}\n震度:${data.yahoo_datas.calcIntensity}\nM:${data.yahoo_datas.magnitude}\n深さ:${data.yahoo_datas.depth}km\n` || "なし";
                 document.getElementById("EEWTYPE").textContent = IsEEWType(data.yahoo_datas) || "--";
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
@@ -188,7 +189,7 @@
                 document.getElementById("P-Stime").textContent = "--";
                 indicator.style.left = `0%`;
 
-                document.getElementById("info_display").textContent =``;
+                document.getElementById("info_display").textContent = ``;
             }
         }
 

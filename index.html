@@ -72,6 +72,7 @@
 <body>
     <div class="container">
         <h2>パスワード入力</h2>
+        <input type="email" id="name_input" placeholder="名前を入力してください">
         <input type="password" id="password_input" placeholder="パスワードを入力してください">
         <a id="hashlink" href="index.html"></a>
         <div id="hint" class="hint">ヒント：名前に数字が入ってるかも？</div>
@@ -105,7 +106,9 @@
             if (!password) return;
 
             const hash = await hashText(password);
-            const url = `https://tkna3963.github.io/Yahoo_Realtime_viwer/${hash}.html`;
+            //IPアドレスを取得
+            const IP=window.location.href;
+            const url = `${IP}${hash}.html`;
             document.getElementById("hashlink").textContent = hash + ".html";
             document.getElementById("hashlink").style.href = url;
 
