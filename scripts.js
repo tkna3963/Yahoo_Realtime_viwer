@@ -546,7 +546,7 @@ function YM_KM_C(latitude, longitude) {
 function P2Ptime() {
     const p2purl = "https://api.p2pquake.net/v2/history?codes=551&limit=100";
     const P2P_json = loadJSON(p2purl);
-    var times = P2P_json.filter(item => item.earthquakE.issue.time && item.earthquake.hypocenter.magnitude >= 4).map(item => item.earthquake.issue.time);
+    var times = P2P_json.filter(item => item.earthquake.issue.time && item.earthquake.hypocenter.magnitude >= 4).map(item => item.earthquake.issue.time);
     const filteredTimes = times.filter(time => time !== undefined);
     const uniqueTimes = [...new Set(filteredTimes)];
     const sortedTimes = uniqueTimes.sort((a, b) => new Date(b) - new Date(a)); // 降順にソート
@@ -557,7 +557,8 @@ function history_jump(P2P_time) {
     const listContainer = document.querySelector('.occurrence_list');
     // すでに存在する要素を削除
     while (listContainer.firstChild) {
-        listContainer.removeChild(listContainer.firstChild);    }
+        listContainer.removeChild(listContainer.firstChild);
+    }
     P2P_time.forEach(time => {
         const button = document.createElement('button');  // <button>を作成
         button.textContent = time;
