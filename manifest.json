@@ -1,0 +1,15 @@
+{
+    "name": "Yahoo Realtime Viewer",
+    "short_name": "YR Viewer",
+    "start_url": "cdc372789e24f657007b69703ad343ffefbf5eba0804baf43331e141a49404d1.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#317EFB",
+    "icons": [
+        {
+            "src": "Required_files/epicenter.png",
+            "sizes": "100x100",
+            "type": "image/png"
+        }
+    ]
+}

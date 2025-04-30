@@ -1,0 +1,423 @@
+/* Base styles */
+:root {
+    --background: #1a1a1a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --border: #333333;
+    --panel-bg: #242424;
+    --accent: #404040;
+    --grid: rgba(255, 255, 255, 0.03);
+    --alert: #8b0000;
+}
+
+body {
+    margin: 0;
+    padding: 15px;
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    box-sizing: border-box;
+    position: relative;
+    line-height: 1.4;
+    overflow-y: auto;
+}
+
+/* Subtle grid background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -1;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding-bottom: 15px;
+}
+
+/* Panel styling */
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px;
+    position: relative;
+    width: 100%;
+}
+
+.info-card {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    padding: 12px;
+    background: var(--background);
+}
+
+.info-card h2 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+/* Data display */
+.data-point {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+    font-size: 13px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-point:last-child {
+    border-bottom: none;
+}
+
+.data-point label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.data-point value {
+    color: var(--text-primary);
+    font-family: 'Consolas', monospace;
+    font-family: 'DSEG7', sans-serif;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.status-normal {
+    background-color: #2d5a27;
+}
+
+.status-warning {
+    background-color: #5a4a27;
+}
+
+.status-alert {
+    background-color: var(--alert);
+}
+
+/* Map container */
+.map-container {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    height: 60%;
+    position: relative;
+}
+
+/* Data display areas */
+.data-area {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+/* Monitoring values */
+.monitor-value {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--background);
+    padding: 4px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+th,
+td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .panel {
+        padding: 10px;
+    }
+
+    .info-card {
+        padding: 10px;
+    }
+
+    .data-point {
+        font-size: 12px;
+    }
+
+    .map-container {
+        height: 60%;
+    }
+}
+
+@media (min-width: 1200px) {
+    main {
+        grid-template-columns: 300px 1fr;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+
+    .panel,
+    .info-card {
+        border: 1px solid #ccc;
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    body::before {
+        display: none;
+    }
+}
+
+/* Textarea styling */
+textarea,
+.textarea {
+    width: 100%;
+    max-width: 100%;
+    /* Ensure width does not exceed parent */
+    min-height: 120px;
+    background: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+/* Textarea scrollbar customization */
+textarea::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* Focus styling */
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Read-only styling */
+textarea[readonly],
+textarea:disabled {
+    background: var(--panel-bg);
+    cursor: default;
+    opacity: 0.8;
+}
+
+/* Error state styling */
+textarea.error {
+    border-color: var(--alert);
+}
+
+/* Placeholder styling */
+textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* Textarea wrapper (optional) */
+.textarea-wrapper {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.textarea-wrapper label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Character counter (optional) */
+.textarea-counter {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--panel-bg);
+    padding: 2px 6px;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* Responsive adjustments for textarea */
+@media (max-width: 768px) {
+
+    textarea,
+    .textarea {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .textarea-wrapper label {
+        font-size: 11px;
+    }
+}
+
+/* Print styles for textarea */
+@media print {
+
+    textarea,
+    .textarea {
+        border: 1px solid #ccc;
+        background: white;
+        color: black;
+    }
+}
+
+/*https://www.keshikan.net/fonts.html*/
+@font-face {
+    font-family: 'DSEG7';
+    src: url('Required_files/DSEG7Classic-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    unicode-range: U+30-49;
+}
+
+.seismic {
+    background: #242424;
+    text-align: center;
+    width: 100%;
+}
+
+.scale {
+    height: 30px;
+    width: 100%;
+    background: linear-gradient(to right,
+            #ADADAD 0%,
+            /* 震度0: グレー */
+            #FFFFFF 10%,
+            /* 震度1: 白 */
+            #0066CC 20%,
+            /* 震度2: 青 */
+            #00A652 30%,
+            /* 震度3: 緑 */
+            #E6C300 40%,
+            /* 震度4: 黄色 */
+            #DC6B00 50%,
+            /* 震度5弱: オレンジ */
+            #DC6B00 60%,
+            /* 震度5強: オレンジ */
+            #E33977 70%,
+            /* 震度6弱: ピンク */
+            #E33977 80%,
+            /* 震度6強: ピンク */
+            #5D1799 90%,
+            /* 震度7: 紫 */
+            #1c0142 100%
+            /* 震度7以上: 濃い紫 */
+        );
+    position: relative;
+}
+
+.indicator {
+    position: absolute;
+    width: 1.5px;
+    height: 30px;
+    background: black;
+    left: 0;
+    transition: left 0.3s;
+}
+
+.ticks {
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 5px;
+    margin-bottom: 10px;
+}
+
+.ticks {
+    position: absolute;
+    top: -20px; /* スケールの上に配置 */
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    z-index: 2; /* 他の要素より前面に */
+}
+
+.tick span {
+    display: block;
+    font-size: 14px;
+    color: gray;
+    margin-top: 5px;
+}

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>パスワードロック</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #e5e5e5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            width: 900px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+        }
+
+        .message {
+            font-size: 13px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .hint {
+            font-size: 14px;
+            color: #e67e22;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>パスワード入力</h2>
+        <input type="email" id="name_input" placeholder="名前を入力してください">
+        <input type="password" id="password_input" placeholder="パスワードを入力してください">
+        <a id="hashlink" href="index.html"></a>
+    </div>
+
+    <script>
+        async function hashText(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const passwordInput = document.getElementById("password_input");
+
+        async function checkAndRedirect(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                if (response.ok) {
+                    window.location.href = url;
+                }
+            } catch (error) {
+                console.log("Error checking URL:", error);
+            }
+        }
+
+        passwordInput.addEventListener("input", async () => {
+            const password = passwordInput.value.trim();
+            if (!password) return;
+
+            const hash = await hashText(password);
+            //IPアドレスを取得
+            const IP=window.location.href;
+            const url = `${IP}${hash}.html`;
+            document.getElementById("hashlink").textContent = hash + ".html";
+            document.getElementById("hashlink").style.href = url;
+
+            const correctPrefix = "cdc";
+
+            // 完全一致でリダイレクト
+            if (hash.startsWith(correctPrefix)) {
+                checkAndRedirect(url);
+            }
+
+        });
+
+        // Enterキー対応
+        passwordInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault(); // フォーム送信防止
+                passwordInput.dispatchEvent(new Event('input'));
+            }
+        });
+
+        // 初期フォーカス
+        window.onload = () => {
+            passwordInput.focus();
+        };
+    </script>
+</body>
+
+</html>

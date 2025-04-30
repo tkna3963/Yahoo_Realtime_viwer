@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahooリアルタイム開発者地震情報</title>
+    <script src="scripts.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <link rel="icon" href="Required_files/epicenter.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#317EFB">
+</head>
+
+<body>
+    <main>
+        <div class="panel">
+            <div class="info-card">
+                <h2>基本情報</h2>
+                <div class="data-point">
+                    <label>現在時刻:</label>
+                    <value id="get_time" style="font-family: 'DSEG7', sans-serif;">読み込み中...</value>
+                </div>
+                <div class="data-point">
+                    <label>現在位置:</label>
+                    <value id="location" style="font-family: 'DSEG7', sans-serif;">取得中...</value>
+                </div>
+                <div class="data-point">
+                    <input id="time_machine">
+                </div>
+                <div class="intensity-info">
+                    <h2>主要情報</h2>
+                    <div class="info-item">
+                        <span class="label">タイプ</span>
+                        <span class="value" id="EEWTYPE" style="  color:red;  font-size: 20px !important; ">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">発報番号</span>
+                        <span class="value" id="reportNum" style="font-family: 'DSEG7', sans-serif;">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">最大強震震度</span>
+                        <span class="value" id="max-intensity"
+                            style="font-size: 20px !important; color:rgb(76, 76, 201); font-family: 'DSEG7 ', sans-serif;">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">現在地予想震度</span>
+                        <span class="value" id="calclocate-intensity"
+                            style="font-size: 20px !important; color:green; font-family: 'DSEG7', sans-serif;">--</span>
+                    </div>
+                    <div class="info-item">
+                        <div class="seismic">
+                            <div class="scale">
+                                <div class="ticks">
+                                    <div class="tick"><span>1</span></div>
+                                    <div class="tick"><span>2</span></div>
+                                    <div class="tick"><span>3</span></div>
+                                    <div class="tick"><span>4</span></div>
+                                    <div class="tick"><span>5</span></div>
+                                    <div class="tick"><span>6</span></div>
+                                    <div class="tick"><span>7</span></div>
+                                </div>
+                                <div class="indicator" id="indicator"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">予想最大震度</span>
+                        <span class="value" id="calc-intensity"
+                            style="color:yellow; font-family: 'DSEG7', sans-serif;">--</span>
+                    </div>
+                </div>
+                <div class="magnitude-info">
+                    <span class="label">M</span>
+                    <span class="value" id="magnitude" style="font-family: 'DSEG7', sans-serif;">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="label"> 震央距離</span>
+                    <span class="value" id="Epicentral-distance" style="font-family: 'DSEG7', sans-serif;">--</span>
+                </div>
+                <div class="wave-info">
+                    <div class="info-item">P波 <span id="p-radius" style="font-family: 'DSEG7', sans-serif;">--</span>
+                    </div>
+                    <div class="info-item">S波 <span id="s-radius" style="font-family: 'DSEG7', sans-serif;">--</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="label">予想現在地P-S時間:</span>
+                    <span class="value" id="P-Stime" style="font-family: 'DSEG7', sans-serif;">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">各地の予想震度:</span>
+                    <span class="value" id="arascalcintensity">--</span>
+                </div>
+                <button onclick="openSubWindow()">Kyoushin_Moniter</button>
+                <div class="data-point">
+                    <div class="occurrence_list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel center-panel">
+            <div class="center-circle">
+                <div class="circle-inner"></div>
+                <div class="circle-content">
+                    <div id="map" style="height: 400px; width: 100%;"></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h2>地震詳細情報</h2>
+                <div id="earthquake-details">
+                    <div class="data-point" style="font-family: 'DSEG7', sans-serif;">情報を取得中... </div>
+                </div>
+                <div class="panel">
+                    <h2>詳細データ（JSON）</h2>
+                    <textarea id="jsonarea" readonly>取得中...</textarea>
+                </div>
+            </div>
+        </div>
+    </main>
+    <audio src="" id="SoundEffects"></audio>
+
+    <script>
+        //作業&変換関数部
+        function InformationPrinter(data) {
+            const detailsContainer = document.getElementById("earthquake-details");
+            detailsContainer.innerHTML = "";
+            if (data.yahoo_datas.situation === "EEW_has_been_issued") {
+                details = data.yahoo_datas;
+                const detailItems = [
+                    { label: "報告ID", value: details.reportId },
+                    { label: "発報番号", value: details.reportNum },
+                    { label: "報告時間", value: `${details.reportTime}(${calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.reportTime))}秒前)` },
+                    { label: "地震発生時刻", value: `${details.originTime}(${calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒前)` },
+                    { label: "震源地名", value: details.regionName },
+                    { label: "緯度経度座標", value: `${details.Wave_latitude},${details.Wave_longitude}` },
+                    { label: "震源距離", value: `${data.SFCD}km` },
+                    { label: "震源の深さ (km)", value: details.depth },
+                    { label: "予想最大深度", value: details.calcIntensity },
+                    { label: "マグニチュード", value: details.magnitude },
+                    { label: "波の地点", value: `${details.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.pRadius / data.SFCD) * 100)}%) ${details.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(details.originTime))}秒 ${Math.round((details.sRadius / data.SFCD) * 100)}%)` }
+                ];
+                detailItems.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "data-point";
+                    div.innerHTML = `<label>${item.label}:</label><value>${item.value}</value>`;
+                    detailsContainer.appendChild(div);
+                });
+            } else {
+                detailsContainer.innerHTML = "<div class='data-point'>現在有効な地震情報はありません。</div>";
+            }
+        }
+
+        function DetailedInformationPrinter(data) {
+            document.getElementById("max-intensity").textContent = getShindoLabel(data.MAXseismicIntensity);
+            if (data.yahoo_datas.situation === "EEW_has_been_issued") {
+                document.getElementById("info_display").textContent = `発生時刻:${data.yahoo_datas.originTime.slice(-10)}\n${data.yahoo_datas.situation}\n${IsEEWType(data.yahoo_datas)}\n震央地名:${data.yahoo_datas.regionName}\n震度:${data.yahoo_datas.calcIntensity}\nM:${data.yahoo_datas.magnitude}\n深さ:${data.yahoo_datas.depth}km\n` || "なし";
+                document.getElementById("EEWTYPE").textContent = IsEEWType(data.yahoo_datas) || "--";
+                document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
+                document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
+                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%)` || "--";
+                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%)` || "--";
+                document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
+
+                if (data.SFCI >= 0) {
+                    document.getElementById("calclocate-intensity").textContent = `${getShindoLabel(data.SFCI)}(${data.SFCI})` || "--";
+                    const scale = document.querySelector('.scale');
+                    const indicator = document.querySelector('.indicator');
+                    const seismicValue = parseFloat(data.SFCI);
+                    const position = Math.min(100, Math.max(0, (seismicValue / 9) * 100));
+                    indicator.style.left = `${position}%`;
+                } else {
+                    document.getElementById("calclocate-intensity").textContent = `0(${data.SFCI})`;
+                    indicator.style.left = `0%`;
+                }
+
+                document.getElementById("Epicentral-distance").textContent = `${data.SFCD}km` || "--";
+                document.getElementById("P-Stime").textContent = `約${Math.round(data.SFCD / 8)}秒` || "--";
+            } else {
+                document.getElementById("EEWTYPE").textContent = "--";
+                document.getElementById("calc-intensity").textContent = "--";
+                document.getElementById("magnitude").textContent = "--";
+                document.getElementById("p-radius").textContent = "--";
+                document.getElementById("s-radius").textContent = "--";
+                document.getElementById("reportNum").textContent = "--";
+                document.getElementById("calclocate-intensity").textContent = "--";
+                document.getElementById("arascalcintensity").textContent = "--";
+                document.getElementById("Epicentral-distance").textContent = "--";
+                document.getElementById("P-Stime").textContent = "--";
+                indicator.style.left = `0%`;
+
+                document.getElementById("info_display").textContent = ``;
+            }
+        }
+
+        function playAudio(srcurl) {
+            const audio = new Audio(srcurl);
+            audio.play().catch(function (error) {
+                console.error("音声の再生に失敗しました:", error);
+            });
+        }
+
+
+        //map
+        const map = L.map('map').setView([35.689, 139.692], 4);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+        }).addTo(map);
+
+        var info_display = L.control({ position: 'topright' });
+        info_display.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info-display');
+            div.innerHTML = '<textarea id="info_display" style="background:rgb(0,0,0,0.2)"></textarea>';
+            return div;
+        };
+        info_display.addTo(map);
+
+        let coloringLayer = null;
+        let markerLayer = null;
+        function EEWColoringMap(data) {
+            fetch('Required_files\\saibun.json')
+                .then(response => response.json())
+                .then(geojsonData => {
+                    if (!coloringLayer) {
+                        coloringLayer = L.geoJSON(null).addTo(map);
+                    } else {
+                        coloringLayer.clearLayers();
+                    }
+                    if (markerLayer) {
+                        map.removeLayer(markerLayer);
+                        markerLayer = null;
+                    }
+                    if (data === null) {
+                        coloringLayer.addData(geojsonData).setStyle({
+                            color: '#000',
+                            weight: 1,
+                            fillColor: 'gray',
+                            fillOpacity: 0.7
+                        });
+                        coloringLayer.bringToBack();
+                        return;
+                    }
+                    document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
+                    playAudio("Required_files\\Continue4.wav");
+                    const [sfcData, nameData, arvData, dblData] = data;
+                    const maps = { areaSFC: {}, areaName: {}, Arv: {}, DBL: {} };
+                    geojsonData.features.forEach((feature, index) => {
+                        const key = feature.properties.code || feature.properties.name || `index${index}`;
+                        maps.areaSFC[key] = sfcData?.[index] ?? 0;
+                        maps.areaName[key] = nameData?.[index] ?? feature.properties.name ?? "不明";
+                        maps.Arv[key] = arvData?.[index] ?? 0;
+                        maps.DBL[key] = dblData?.[index] ?? 0;
+                    });
+                    coloringLayer.addData(geojsonData).setStyle(feature => {
+                        const key = feature.properties.code || feature.properties.name;
+                        const intensity = maps.areaSFC[key] ?? 0;
+                        return {
+                            weight: 2,
+                            fillColor: intensity >= 0 ? getSeismicColor(intensity) : 'black',
+                            color: '#4b617d',
+                            fillOpacity: 0.7
+                        };
+                    });
+                    coloringLayer.bringToBack();
+                });
+        }
+
+        let earthquakeMarker = null;
+        let EarthquakesPCircle = null;
+        let EarthquakesSCircle = null;
+        function EEWCircle(data) {
+            if (data === null) {
+                if (earthquakeMarker) {
+                    map.removeLayer(earthquakeMarker);
+                    earthquakeMarker = null;
+                }
+                if (EarthquakesPCircle) {
+                    map.removeLayer(EarthquakesPCircle);
+                    EarthquakesPCircle = null;
+                }
+                if (EarthquakesSCircle) {
+                    map.removeLayer(EarthquakesSCircle);
+                    EarthquakesSCircle = null;
+                }
+                return;
+            }
+            let xIcon = L.icon({
+                iconUrl: 'Required_files/epicenter.png',
+                iconSize: [20, 20],
+                iconAnchor: [9, 9],
+                popupAnchor: [0, 0],
+            });
+            if (earthquakeMarker) {
+                earthquakeMarker.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude])
+                    .setIcon(xIcon)
+                    .openPopup();
+            } else {
+                earthquakeMarker = L.marker([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], { icon: xIcon, interactive: false })
+                    .addTo(map)
+                    .openPopup();
+            }
+            if (EarthquakesPCircle) {
+                EarthquakesPCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
+                EarthquakesPCircle.setRadius(data.yahoo_datas.pRadius * 1000);
+            } else {
+                EarthquakesPCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
+                    color: 'blue',
+                    fillColor: 'blue',
+                    fillOpacity: 0,
+                    radius: data.yahoo_datas.pRadius * 1000,
+                }).addTo(map);
+            }
+            if (EarthquakesSCircle) {
+                EarthquakesSCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
+                EarthquakesSCircle.setRadius(data.yahoo_datas.sRadius * 1000);
+            } else {
+                EarthquakesSCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
+                    color: 'red',
+                    fillColor: 'red',
+                    fillOpacity: 0,
+                    radius: data.yahoo_datas.sRadius * 1000,
+                }).addTo(map);
+            }
+        }
+
+        let KyoushinLayer = L.layerGroup().addTo(map);
+        let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
+        let KyoushinPreviousData = new Map();
+        let KyoushinPreviousMarkers = new Map();
+        let shakeSquares = [];
+        let previousClosestPoint = null;
+        let KyoushinMarker = null;
+        function KyoushinMoniter(data, locate) {
+            const Slist = data.seismicIntensityList.length;
+            if (Slist !== Poinsts.length) {
+                KyoushinLayer.clearLayers();
+                KyoushinPreviousData.clear();
+                KyoushinPreviousMarkers.clear();
+                return;
+            }
+            for (let i = 0; i < Poinsts.length; i++) {
+                const point = Poinsts[i];
+                const intensity = data.seismicIntensityList[i];
+                if (KyoushinPreviousMarkers.has(i)) {
+                    let oldMarker = KyoushinPreviousMarkers.get(i);
+                    if (oldMarker) {
+                        KyoushinLayer.removeLayer(oldMarker);
+                    }
+                    KyoushinPreviousMarkers.delete(i);
+                }
+                if (data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
+                    if (KyoushinPreviousData.has(i) && KyoushinPreviousData.get(i) === intensity) {
+                        continue;
+                    }
+                }
+                KyoushinPreviousData.set(i, intensity);
+                const YM_KM_C_data = YM_KM_C(point[0], point[1]);
+                let newMarker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
+                    color: getSeismicColor(intensity),
+                    fillColor: getSeismicColor(intensity),
+                    fillOpacity: 1,
+                    radius: 100,
+                }).addTo(KyoushinLayer);
+                newMarker.on('click', () => {
+                    newMarker.bindPopup(`id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
+                });
+                KyoushinPreviousMarkers.set(i, newMarker);
+            }
+
+            // 揺れ検知
+            const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
+            shakeSquares.forEach(square => map.removeLayer(square));
+            let firstPoints = ShakeDetectionPoint.slice(-20);
+            firstPoints.forEach(([lat, lon, timestamp], index) => {
+                let baseSize = 1000;
+                let bounds = [
+                    [lat - 0.2, lon - 0.2],
+                    [lat + 0.2, lon + 0.2]
+                ];
+                let square = L.rectangle(bounds, {
+                    color: 'white',
+                    fillColor: '#f03',
+                    fillOpacity: 0.1
+                }).addTo(map);
+                shakeSquares.push(square);
+                setTimeout(() => {
+                    map.removeLayer(square);
+                }, 500);
+                if (ShakeDetectionPoint.length >= 3 & ShakeDetectionPoint.length <= 4 & data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
+                    playAudio("Required_files\\NEWS2 (A).wav")
+                }
+            });
+
+            let closestPoint = null;
+            let minDistance = Infinity;
+            if (locate) {
+                for (let i = 0; i < Poinsts.length; i++) {
+                    const point = Poinsts[i];
+                    const distance = calculateDistance([locate[0], locate[1]], [point[0], point[1]]);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestPoint = point;
+                    }
+                }
+                if (closestPoint) {
+                    const YM_KM_C_data = YM_KM_C(closestPoint[0], closestPoint[1]);
+                    const intensity = data.seismicIntensityList[Poinsts.indexOf(closestPoint)];
+                    const icon = L.divIcon({
+                        className: 'custom-icon',
+                        html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`, // アイコンの中身
+                        iconSize: [5, 5],
+                        iconAnchor: [5, 5],
+                    });
+                    if (KyoushinMarker) {
+                        KyoushinMarker.setIcon(icon);
+                    } else {
+                        KyoushinMarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
+                    }
+                }
+            }
+
+            //震度1以上の観測点を50点ポップアップ
+            const intensityThreshold = 1;
+            const pointsAboveThreshold = data.seismicIntensityList.reduce((acc, intensity, index) => {
+                if (intensity >= intensityThreshold) {
+                    acc.push(Poinsts[index]);
+                }
+                return acc;
+            }, []);
+            pointsAboveThreshold.slice(0, 50).filter(point => point !== closestPoint).forEach(point => {
+                const YM_KM_C_data = YM_KM_C(point[0], point[1]);
+                const intensity = data.seismicIntensityList[Poinsts.indexOf(point)];
+                const icon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="font-size: 10px; color: blue;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`,
+                    iconSize: [5, 5],
+                    iconAnchor: [5, 5],
+                });
+                const marker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
+                setTimeout(() => {
+                    map.removeLayer(marker);
+                }, 1000);
+            });
+        }
+
+        let currentLocationMarker = null;
+        //実行部
+        function main() {
+            console.time()
+            const datas_bords = datas_bord();
+            const locate_latitude = datas_bords.latitude || 0;
+            const locate_longitude = datas_bords.longitude || 0;
+            if (locate_latitude !== 0 && locate_longitude !== 0) {
+                if (currentLocationMarker) {
+                    currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);
+                } else {
+                    currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map);
+                }
+            }
+            InformationPrinter(datas_bords);
+            DetailedInformationPrinter(datas_bords);
+            KyoushinMoniter(datas_bords, [locate_latitude, locate_longitude]);
+            history_jump(datas_bords.P2Ptime)
+            document.getElementById("get_time").textContent = datas_bords.yahoo_datas.get_date;
+            document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
+
+            document.getElementById("location").textContent = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
+
+            if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
+                if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
+                    EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
+                }
+                EEWCircle(datas_bords);
+                //音声s
+                //EEW
+                const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
+                if (checkEEW) {
+                    map.setView([datas_bords.yahoo_datas.Wave_latitude, datas_bords.yahoo_datas.Wave_longitude], 7, {
+                        animate: true,
+                        duration: 1
+                    });
+                    text_speak(`${IsEEWType(datas_bords.yahoo_datas)}　しんおう:${datas_bords.yahoo_datas.regionName}`);
+                    playAudio("Required_files\\Buzzer1.wav")
+                }
+                //続報音
+                const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
+                if (checkEEWUpdates) {
+                    playAudio("Required_files\\Continue1.wav")
+                }
+            } else {
+                EEWColoringMap(null);
+                EEWCircle(null);
+            }
+            console.timeEnd()
+        }
+
+        function startup() {
+            main();
+            setInterval(main, 1000);
+        }
+
+        window.addEventListener("load", startup);
+    </script>
+
+    <script>
+        function openImage(src) {
+            window.open(src, "_blank", "width=600, height=400");
+        }
+        function openSubWindow() {
+            window.open("sub_window.html", "_blank", "width=342px, height=440px");
+        }
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker 登録成功:', reg.scope))
+                    .catch(err => console.error('Service Worker 登録失敗:', err));
+            });
+        }
+
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'update') {
+                    console.log('新しいバージョンが利用可能です。ページをリロードします。');
+                    window.location.reload();
+                }
+            });
+        }
+        //開いたらダウンロードするようにする
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    if (reg.installing) {
+                        console.log('Service Worker is installing');
+                    } else if (reg.waiting) {
+                        console.log('Service Worker is waiting');
+                    } else if (reg.active) {
+                        console.log('Service Worker is active');
+                    }
+                })
+                .catch(error => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>
