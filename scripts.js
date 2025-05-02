@@ -458,7 +458,7 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     // 基盤の速度（Vs = 400 m/s）の変換
     const maxSpeed400 = maxSpeed600 * 1.31;
     // 増幅率を使って最終的な速度を計算
-    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 * (Number(amplificationFactor)+ 2);
+    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 * (Number(amplificationFactor) + 2);
     // 震度を計算
     const intensity = parseFloat((2.68 + 1.72 * Math.log10(surfaceSpeed)).toFixed(2));
     // 結果を返す（震度、震央からの距離、最大速度、増幅率）
@@ -543,7 +543,9 @@ function YM_KM_C(latitude, longitude) {
 function P2Ptime() {
     const p2purl = "https://api.p2pquake.net/v2/history?codes=551&limit=100";
     const P2P_json = loadJSON(p2purl);
-    var times = P2P_json.filter(item => item.earthquake.issue.time && item.earthquake.hypocenter.magnitude >= 4).map(item => item.earthquake.issue.time);
+    const times = P2P_json
+        .filter(item => item.earthquake?.issue?.time && item.earthquake?.hypocenter?.magnitude >= 4)
+        .map(item => item.earthquake.issue.time);
     const filteredTimes = times.filter(time => time !== undefined);
     const uniqueTimes = [...new Set(filteredTimes)];
     const sortedTimes = uniqueTimes.sort((a, b) => new Date(b) - new Date(a)); // 降順にソート
@@ -598,7 +600,7 @@ function datas_bord() {
                 YahooDatas.magnitude,
                 YahooDatas.depth,
                 [YahooDatas.Wave_latitude, YahooDatas.Wave_longitude],
-                [centerP.latitude,centerP.longitude],
+                [centerP.latitude, centerP.longitude],
                 Number(centerP.properties.arv)
             );
             console.table(AreaSFC)
