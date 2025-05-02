@@ -97,9 +97,6 @@
                     <span class="value" id="arascalcintensity">--</span>
                 </div>
                 <button onclick="openSubWindow()">Kyoushin_Moniter</button>
-                <div class="data-point">
-                    <div class="occurrence_list"></div>
-                </div>
             </div>
         </div>
         <div class="panel center-panel">
@@ -218,6 +215,14 @@
         };
         info_display.addTo(map);
 
+        var PWave_Auto_zoom = L.control({ position: 'topright' });
+        PWave_Auto_zoom.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'PWave_Auto_zoom');
+            div.innerHTML = '<span>PAZ<input id="PWave_Auto_zoom" type="checkbox" checked></span>';
+            return div;
+        };
+        PWave_Auto_zoom.addTo(map);
+
         let coloringLayer = null;
         let markerLayer = null;
         let cachedGeoJSON = null; // キャッシュ用
@@ -263,10 +268,8 @@
                         fillOpacity: 0.7
                     };
                 });
-        
                 coloringLayer.bringToBack();
             };
-        
             if (cachedGeoJSON) {
                 handleData(cachedGeoJSON);
             } else {
@@ -277,7 +280,7 @@
                         handleData(geojsonData);
                     });
             }
-        }        
+        }
 
         let earthquakeMarker = null;
         let EarthquakesPCircle = null;
@@ -316,6 +319,10 @@
             if (EarthquakesPCircle) {
                 EarthquakesPCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
                 EarthquakesPCircle.setRadius(data.yahoo_datas.pRadius * 1000);
+                if (document.getElementById("PWave_Auto_zoom").checked) {
+                    const bounds = EarthquakesPCircle.getBounds();
+                    map.fitBounds(bounds);
+                }
             } else {
                 EarthquakesPCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
                     color: 'blue',
@@ -474,7 +481,6 @@
             InformationPrinter(datas_bords);
             DetailedInformationPrinter(datas_bords);
             KyoushinMoniter(datas_bords, [locate_latitude, locate_longitude]);
-            history_jump(datas_bords.P2Ptime)
             document.getElementById("get_time").textContent = datas_bords.yahoo_datas.get_date;
             document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
 

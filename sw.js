@@ -6,8 +6,8 @@ const urlsToCache = [
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/styles.css',
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/manifest.json',
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/Required_files/epicenter.png',
-    'https://tkna3963.github.io/Yahoo_Realtime_viwer/Required_files/centerARVs.json',
-    'https://tkna3963.github.io/Yahoo_Realtime_viwer/Required_files/japanmap.json'
+    'https://tkna3963.github.io/Yahoo_Realtime_viwer/Required_files/saibun.json',
+    'https://tkna3963.github.io/Yahoo_Realtime_viwer/Required_files/SaibuncenterARVs.json'
 ];
 
 self.addEventListener('install', event => {
