@@ -220,53 +220,64 @@
 
         let coloringLayer = null;
         let markerLayer = null;
+        let cachedGeoJSON = null; // キャッシュ用
         function EEWColoringMap(data) {
-            fetch('Required_files\\saibun.json')
-                .then(response => response.json())
-                .then(geojsonData => {
-                    if (!coloringLayer) {
-                        coloringLayer = L.geoJSON(null).addTo(map);
-                    } else {
-                        coloringLayer.clearLayers();
-                    }
-                    if (markerLayer) {
-                        map.removeLayer(markerLayer);
-                        markerLayer = null;
-                    }
-                    if (data === null) {
-                        coloringLayer.addData(geojsonData).setStyle({
-                            color: '#000',
-                            weight: 1,
-                            fillColor: 'gray',
-                            fillOpacity: 0.7
-                        });
-                        coloringLayer.bringToBack();
-                        return;
-                    }
-                    document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
-                    playAudio("Required_files\\Continue4.wav");
-                    const [sfcData, nameData, arvData, dblData] = data;
-                    const maps = { areaSFC: {}, areaName: {}, Arv: {}, DBL: {} };
-                    geojsonData.features.forEach((feature, index) => {
-                        const key = feature.properties.code || feature.properties.name || `index${index}`;
-                        maps.areaSFC[key] = sfcData?.[index] ?? 0;
-                        maps.areaName[key] = nameData?.[index] ?? feature.properties.name ?? "不明";
-                        maps.Arv[key] = arvData?.[index] ?? 0;
-                        maps.DBL[key] = dblData?.[index] ?? 0;
-                    });
-                    coloringLayer.addData(geojsonData).setStyle(feature => {
-                        const key = feature.properties.code || feature.properties.name;
-                        const intensity = maps.areaSFC[key] ?? 0;
-                        return {
-                            weight: 2,
-                            fillColor: intensity >= 0 ? getSeismicColor(intensity) : 'black',
-                            color: '#4b617d',
-                            fillOpacity: 0.7
-                        };
+            const handleData = (geojsonData) => {
+                if (!coloringLayer) {
+                    coloringLayer = L.geoJSON(null).addTo(map);
+                } else {
+                    coloringLayer.clearLayers();
+                }
+                if (markerLayer) {
+                    map.removeLayer(markerLayer);
+                    markerLayer = null;
+                }
+                if (data === null) {
+                    coloringLayer.addData(geojsonData).setStyle({
+                        color: '#000',
+                        weight: 1,
+                        fillColor: 'gray',
+                        fillOpacity: 0.7
                     });
                     coloringLayer.bringToBack();
+                    return;
+                }
+                document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
+                playAudio("Required_files\\Continue4.wav");
+                const [sfcData, nameData, arvData, dblData] = data;
+                const maps = { areaSFC: {}, areaName: {}, Arv: {}, DBL: {} };
+                geojsonData.features.forEach((feature, index) => {
+                    const key = feature.properties.code || feature.properties.name || `index${index}`;
+                    maps.areaSFC[key] = sfcData?.[index] ?? 0;
+                    maps.areaName[key] = nameData?.[index] ?? feature.properties.name ?? "不明";
+                    maps.Arv[key] = arvData?.[index] ?? 0;
+                    maps.DBL[key] = dblData?.[index] ?? 0;
                 });
-        }
+                coloringLayer.addData(geojsonData).setStyle(feature => {
+                    const key = feature.properties.code || feature.properties.name;
+                    const intensity = maps.areaSFC[key] ?? 0;
+                    return {
+                        weight: 2,
+                        fillColor: intensity >= 0 ? getSeismicColor(intensity) : 'black',
+                        color: '#4b617d',
+                        fillOpacity: 0.7
+                    };
+                });
+        
+                coloringLayer.bringToBack();
+            };
+        
+            if (cachedGeoJSON) {
+                handleData(cachedGeoJSON);
+            } else {
+                fetch('Required_files\\saibun.json')
+                    .then(response => response.json())
+                    .then(geojsonData => {
+                        cachedGeoJSON = geojsonData;
+                        handleData(geojsonData);
+                    });
+            }
+        }        
 
         let earthquakeMarker = null;
         let EarthquakesPCircle = null;
