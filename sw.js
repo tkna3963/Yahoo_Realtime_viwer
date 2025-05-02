@@ -2,7 +2,7 @@ const CACHE_NAME = 'yr-pwa-v1';
 const urlsToCache = [
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/',
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/index.html',
-    'https://tkna3963.github.io/Yahoo_Realtime_viwer/scripts.js',
+    'https://tkna3963.github.io/Yahoo_Realtime_viwer/script.js',
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/styles.css',
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/manifest.json',
     'https://tkna3963.github.io/Yahoo_Realtime_viwer/Required_files/epicenter.png',
