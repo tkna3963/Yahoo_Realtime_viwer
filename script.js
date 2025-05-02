@@ -540,6 +540,7 @@ function YM_KM_C(latitude, longitude) {
     }
 }
 
+let CentersData = loadJSON("Required_files\\SaibuncenterARVs.json")
 function datas_bord() {
     const results_datalist = {};
     const AreaSFClist = [];
@@ -560,7 +561,6 @@ function datas_bord() {
         var SFCD = Math.round(SFC.epicenterDistance)
         results_datalist.SFCI = SFCI;
         results_datalist.SFCD = SFCD;
-        CentersData = loadJSON("Required_files\\SaibuncenterARVs.json")
         for (const centerP of CentersData.centers) {
             const AreaSFC = calculateDistanceAttenuation(
                 YahooDatas.magnitude,
