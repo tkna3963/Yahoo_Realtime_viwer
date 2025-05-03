@@ -228,6 +228,12 @@
         let cachedGeoJSON = null; // キャッシュ用
         function EEWColoringMap(data) {
             const handleData = (geojsonData) => {
+                const onEachFeature = (feature, layer) => {
+                    const key = feature.properties.code || feature.properties.name;
+                    const intensity = maps?.areaSFC?.[key] ?? "不明";
+                    const areaName = maps?.areaName?.[key] ?? "名称不明";
+                    layer.bindPopup(`<strong>${areaName}</strong><br>震度:${getShindoLabel(intensity)}`);
+                };
                 if (!coloringLayer) {
                     coloringLayer = L.geoJSON(null).addTo(map);
                 } else {
@@ -237,6 +243,7 @@
                     map.removeLayer(markerLayer);
                     markerLayer = null;
                 }
+                labelLayer = L.layerGroup().addTo(map);
                 if (data === null) {
                     coloringLayer.addData(geojsonData).setStyle({
                         color: '#000',
@@ -258,6 +265,12 @@
                     maps.Arv[key] = arvData?.[index] ?? 0;
                     maps.DBL[key] = dblData?.[index] ?? 0;
                 });
+                coloringLayer.options.onEachFeature = (feature, layer) => {
+                    const key = feature.properties.code || feature.properties.name;
+                    const intensity = maps.areaSFC[key] ?? "不明";
+                    const areaName = maps.areaName[key] ?? "名称不明";
+                    layer.bindPopup(`<strong>${areaName}</strong><br>震度:${getShindoLabel(intensity)}`);
+                };
                 coloringLayer.addData(geojsonData).setStyle(feature => {
                     const key = feature.properties.code || feature.properties.name;
                     const intensity = maps.areaSFC[key] ?? 0;
@@ -428,16 +441,18 @@
                     const intensity = data.seismicIntensityList[Poinsts.indexOf(closestPoint)];
                     const icon = L.divIcon({
                         className: 'custom-icon',
-                        html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`, // アイコンの中身
+                        html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`,
                         iconSize: [5, 5],
                         iconAnchor: [5, 5],
                     });
                     if (KyoushinMarker) {
-                        KyoushinMarker.setIcon(icon);
+                        KyoushinMarker.setLatLng([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon]); // ← 追加
+                        KyoushinMarker.setIcon(icon); // ← 追加
                     } else {
                         KyoushinMarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
                     }
                 }
+
             }
 
             //震度1以上の観測点を50点ポップアップ
