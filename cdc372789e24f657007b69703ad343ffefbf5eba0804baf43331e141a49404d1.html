@@ -439,17 +439,35 @@
                 if (closestPoint) {
                     const YM_KM_C_data = YM_KM_C(closestPoint[0], closestPoint[1]);
                     const intensity = data.seismicIntensityList[Poinsts.indexOf(closestPoint)];
-                    const icon = L.divIcon({
+                    const nearicon = L.divIcon({
                         className: 'custom-icon',
-                        html: `<div style="font-size: 15px;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`,
-                        iconSize: [5, 5],
-                        iconAnchor: [5, 5],
+                        html: `
+                            <div style="display: inline-flex; align-items: center; font-size: 10px;">
+                                <div style="
+                                    width: 20px;
+                                    height: 20px;
+                                    background-color: ${getSeismicColor(intensity)};
+                                    border-radius: 50%;
+                                    color: white;
+                                    font-size: 10px;
+                                    text-align: center;
+                                    line-height: 20px;
+                                    font-weight: bold;
+                                    margin-right: 4px;
+                                ">
+                                    ${getShindoLabel(intensity)}
+                                </div>
+                                <span">${YM_KM_C_data.closest_KM_site}</span>
+                            </div>
+                        `,
+                        iconSize: [60, 20],
+                        iconAnchor: [10, 10],
                     });
                     if (KyoushinMarker) {
                         KyoushinMarker.setLatLng([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon]); // ← 追加
-                        KyoushinMarker.setIcon(icon); // ← 追加
+                        KyoushinMarker.setIcon(nearicon); // ← 追加
                     } else {
-                        KyoushinMarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
+                        KyoushinMarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: nearicon }).addTo(map);
                     }
                 }
 
@@ -490,7 +508,13 @@
                 if (currentLocationMarker) {
                     currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);
                 } else {
-                    currentLocationMarker = L.marker([locate_latitude, locate_longitude]).addTo(map);
+                    //アイコンをRequired_files/terminal.png
+                    const loicon = L.icon({
+                        iconUrl: 'Required_files/terminal.png',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15],
+                    });
+                    currentLocationMarker = L.marker([locate_latitude, locate_longitude], { icon: loicon }).addTo(map);
                 }
             }
             InformationPrinter(datas_bords);

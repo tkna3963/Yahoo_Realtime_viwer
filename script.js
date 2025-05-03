@@ -224,17 +224,23 @@ function seismicIntensityConversion(char) {
 
 // 震度をラベルで返す関数（基準を未満に統一）
 function getShindoLabel(shindo) {
-    if (shindo < 0.5) return "0";
-    if (shindo < 1.5) return "1";
-    if (shindo < 2.5) return "2";
-    if (shindo < 3.5) return "3";
-    if (shindo < 4.5) return "4";
-    if (shindo < 5.0) return "5弱";
-    if (shindo < 5.5) return "5強";
-    if (shindo < 6.0) return "6弱";
-    if (shindo < 6.5) return "6強";
-    if (shindo <= 6.5) return "7";
-    return "0";
+    if (shindo < -3) return "-3"; // 震度-3
+    if (shindo < -2.5) return "-2.5"; // 震度-2.5
+    if (shindo < -2) return "-2"; // 震度-2
+    if (shindo < -1.5) return "-1.5"; // 震度-1.5
+    if (shindo < -1.0) return "-1"; // 震度-1
+    if (shindo < -0.5) return "-0.5"; // 震度-0.5
+    if (shindo < 0.5) return "0"; // 震度0
+    if (shindo < 1.5) return "1"; // 震度1
+    if (shindo < 2.5) return "2"; // 震度2
+    if (shindo < 3.5) return "3"; // 震度3
+    if (shindo < 4.5) return "4"; // 震度4
+    if (shindo < 5.0) return "5弱"; // 震度5弱
+    if (shindo < 5.5) return "5強"; // 震度5強
+    if (shindo < 6.0) return "6弱"; // 震度6弱
+    if (shindo < 6.5) return "6強"; // 震度6強
+    if (shindo <= 7.0) return "7"; // 震度7
+    return "不明"; // それ以上
 }
 
 // 震度に対応する色を返す関数（基準を未満に統一）
