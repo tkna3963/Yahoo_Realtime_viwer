@@ -332,7 +332,7 @@
             if (EarthquakesPCircle) {
                 EarthquakesPCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
                 EarthquakesPCircle.setRadius(data.yahoo_datas.pRadius * 1000);
-                if (document.getElementById("PWave_Auto_zoom").checked) {
+                if (document.getElementById("PWave_Auto_zoom").checked && data.yahoo_datas.pRadius!=0) {
                     const bounds = EarthquakesPCircle.getBounds();
                     map.fitBounds(bounds);
                 }

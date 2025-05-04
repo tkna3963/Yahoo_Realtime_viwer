@@ -1,18 +1,37 @@
 
 let currentLocation = { latitude: 0, longitude: 0 };
 
+// localStorage から保存された位置情報を読み込む関数
+function loadLocationFromStorage() {
+    const savedLocation = localStorage.getItem('savedLocation');
+    if (savedLocation) {
+        try {
+            const parsed = JSON.parse(savedLocation);
+            currentLocation.latitude = parsed.latitude;
+            currentLocation.longitude = parsed.longitude;
+            console.log(`ローカルストレージから読み込み: 緯度 ${currentLocation.latitude}, 経度 ${currentLocation.longitude}`);
+        } catch (e) {
+            console.error('ローカルストレージからの読み込みに失敗しました:', e);
+        }
+    } else {
+        console.log('ローカルストレージに位置情報がありません。');
+    }
+}
+
 function updateLocation(position) {
     currentLocation.latitude = position.coords.latitude;
     currentLocation.longitude = position.coords.longitude;
     console.log(`現在地: 緯度 ${currentLocation.latitude}, 経度 ${currentLocation.longitude}`);
+
+    // 位置情報を localStorage に保存
+    localStorage.setItem('savedLocation', JSON.stringify(currentLocation));
 }
 
 function handleLocationError(error) {
     console.error('Geolocation error:', error);
-    // エラー時に一時的に (0,0) に設定
-    currentLocation.latitude = 0;
-    currentLocation.longitude = 0;
-    console.log('現在地を一時的に (0,0) に設定しました');
+
+    // localStorage から保存された位置情報を読み込む
+    loadLocationFromStorage();
 }
 
 if (navigator.geolocation) {
@@ -22,8 +41,8 @@ if (navigator.geolocation) {
         timeout: 1000
     });
 } else {
-    console.error("Geolocation is not supported by this browser.");
-    handleLocationError();
+    console.error("このブラウザでは位置情報取得がサポートされていません。");
+    loadLocationFromStorage(); // サポートされていない場合も試す
 }
 
 function playBeep(frequency = 440, duration = 500) {
