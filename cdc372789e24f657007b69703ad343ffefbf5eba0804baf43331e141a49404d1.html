@@ -215,13 +215,13 @@
         };
         info_display.addTo(map);
 
-        var PWave_Auto_zoom = L.control({ position: 'topright' });
-        PWave_Auto_zoom.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'PWave_Auto_zoom');
-            div.innerHTML = '<span>PAZ<input id="PWave_Auto_zoom" type="checkbox" checked></span>';
+        var SWave_Auto_zoom = L.control({ position: 'topright' });
+        SWave_Auto_zoom.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'SWave_Auto_zoom');
+            div.innerHTML = '<span>SAZ<input id="SWave_Auto_zoom" type="checkbox" checked></span>';
             return div;
         };
-        PWave_Auto_zoom.addTo(map);
+        SWave_Auto_zoom.addTo(map);
 
         let coloringLayer = null;
         let markerLayer = null;
@@ -332,10 +332,6 @@
             if (EarthquakesPCircle) {
                 EarthquakesPCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
                 EarthquakesPCircle.setRadius(data.yahoo_datas.pRadius * 1000);
-                if (document.getElementById("PWave_Auto_zoom").checked && data.yahoo_datas.pRadius!=0) {
-                    const bounds = EarthquakesPCircle.getBounds();
-                    map.fitBounds(bounds);
-                }
             } else {
                 EarthquakesPCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
                     color: 'blue',
@@ -347,6 +343,10 @@
             if (EarthquakesSCircle) {
                 EarthquakesSCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
                 EarthquakesSCircle.setRadius(data.yahoo_datas.sRadius * 1000);
+                if (document.getElementById("SWave_Auto_zoom").checked && data.yahoo_datas.sRadius!=0) {
+                    const bounds = EarthquakesSCircle.getBounds();
+                    map.fitBounds(bounds);
+                }
             } else {
                 EarthquakesSCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
                     color: 'red',
