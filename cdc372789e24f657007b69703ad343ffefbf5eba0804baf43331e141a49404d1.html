@@ -265,12 +265,6 @@
                     maps.Arv[key] = arvData?.[index] ?? 0;
                     maps.DBL[key] = dblData?.[index] ?? 0;
                 });
-                coloringLayer.options.onEachFeature = (feature, layer) => {
-                    const key = feature.properties.code || feature.properties.name;
-                    const intensity = maps.areaSFC[key] ?? "不明";
-                    const areaName = maps.areaName[key] ?? "名称不明";
-                    layer.bindPopup(`<strong>${areaName}</strong><br>震度:${getShindoLabel(intensity)}`);
-                };
                 coloringLayer.addData(geojsonData).setStyle(feature => {
                     const key = feature.properties.code || feature.properties.name;
                     const intensity = maps.areaSFC[key] ?? 0;
@@ -343,7 +337,7 @@
             if (EarthquakesSCircle) {
                 EarthquakesSCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
                 EarthquakesSCircle.setRadius(data.yahoo_datas.sRadius * 1000);
-                if (document.getElementById("SWave_Auto_zoom").checked && data.yahoo_datas.sRadius!=0) {
+                if (document.getElementById("SWave_Auto_zoom").checked && data.yahoo_datas.sRadius != 0) {
                     const bounds = EarthquakesSCircle.getBounds();
                     map.fitBounds(bounds);
                 }
@@ -448,7 +442,7 @@
                                     height: 20px;
                                     background-color: ${getSeismicColor(intensity)};
                                     border-radius: 50%;
-                                    color: white;
+                                    color: black;
                                     font-size: 10px;
                                     text-align: center;
                                     line-height: 20px;
@@ -545,6 +539,11 @@
                 const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
                 if (checkEEWUpdates) {
                     playAudio("Required_files\\Continue1.wav")
+                }
+
+                const keihouUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}${IsEEWType(datas_bords["yahoo_datas"])}`);
+                if(keihouUpdates && IsEEWType(datas_bords["yahoo_datas"])!="緊急地震速報(予報)"){
+                    playAudio("Required_files\\Siren1 (B).wav")
                 }
             } else {
                 EEWColoringMap(null);
