@@ -377,6 +377,9 @@ function deg2rad(deg) {
 let set_time_counter = 0;
 let set_time;
 
+let past_pl = [];
+let past_sl = [];
+
 function yahooRealtimeData() {
     var timeMachineInput = document.getElementById("time_machine");
     var timeMachineValue = timeMachineInput.value;
@@ -391,16 +394,20 @@ function yahooRealtimeData() {
         set_time = new Date(set_time.getTime() + set_time_counter * 1000);
         document.getElementById("get_time").style.color = "yellow";
     }
-    const url_time_date = Yahoo_Time_date_fromat(set_time); // Assuming this formats the date correctly.
+
+    const url_time_date = Yahoo_Time_date_fromat(set_time); // 日付フォーマット関数
     const apiUrl = `https://weather-kyoshin.west.edge.storage-yahoo.jp/RealTimeData/${url_time_date}.json`;
-    // Make synchronous API request
+
+    // 同期リクエスト（同期の必要がないなら非同期に変更推奨）
     const xhr = new XMLHttpRequest();
     xhr.open("GET", apiUrl, false);
     xhr.send();
+
     const request_status = `${xhr.status}${xhr.statusText}`;
     const yahoo_json_data = JSON.parse(xhr.responseText);
-    const format_get_date = formatYahooTimeDate(set_time); // Assuming this formats the date correctly.
-    // Structure for no EEW
+    const format_get_date = formatYahooTimeDate(set_time); // 表示用日付フォーマット
+
+    // 緊急地震速報が発表されていない場合
     if (yahoo_json_data.hypoInfo === null) {
         return {
             situation: "EEW_hasn't_been_issued",
@@ -412,9 +419,29 @@ function yahooRealtimeData() {
             Telegram: yahoo_json_data
         };
     }
-    // Structure for EEW issued
+
+    // 緊急地震速報がある場合
     const hypoInfo = yahoo_json_data.hypoInfo.items[0];
     const psWave = yahoo_json_data.psWave.items[0];
+
+    const pRadius = Math.round(psWave.pRadius);
+    const sRadius = Math.round(psWave.sRadius);
+
+    // 差分計算（前回値がある場合）
+    let past_p_diff = null;
+    let past_s_diff = null;
+
+    if (past_pl.length > 0) {
+        past_p_diff = pRadius - past_pl[past_pl.length - 1];
+    }
+    if (past_sl.length > 0) {
+        past_s_diff = sRadius - past_sl[past_sl.length - 1];
+    }
+
+    // 履歴に現在値を追加
+    past_pl.push(pRadius);
+    past_sl.push(sRadius);
+
     return {
         situation: "EEW_has_been_issued",
         get_date: format_get_date,
@@ -430,14 +457,17 @@ function yahooRealtimeData() {
         depth: hypoInfo.depth.replace("km", ""),
         Wave_latitude: psWave.latitude.replace("N", ""),
         Wave_longitude: psWave.longitude.replace("E", ""),
-        pRadius: Math.round(psWave.pRadius),
-        sRadius: Math.round(psWave.sRadius),
+        pRadius: pRadius,
+        sRadius: sRadius,
+        past_p_diff: past_p_diff,
+        past_s_diff: past_s_diff,
         status: request_status,
         url_time_date: url_time_date,
         API_URL: apiUrl,
         Telegram: yahoo_json_data
     };
 }
+
 
 // 地表情報提供APIを呼び出す関数
 function surfaceGroundInformationProvisionAPI(現在地緯度, 現在地経度) {
@@ -609,58 +639,78 @@ function datas_bord() {
 }
 
 
-const threshold = 0.5; // イベントを検出するための強度の閾値
-const historyWindow = 10; // 過去の秒数 (10秒)
-const minMagnitudeChange = 1; // 最小震度変化 (検出基準)
-function detectEvents(intensityData, locations) {
+const threshold = 0.5; // 揺れとみなすリアルタイム震度
+const historyWindow = 10; // 過去10秒間
+const minMagnitudeChange = 0.5; // 震度の変化量での検知基準
+const eventExpirySeconds = 15; // イベントを継続する秒数
+
+function detectEvents(intensityData, locations, historyMap = new Map(), previousEvents = new Map()) {
+    const now = Date.now();
     const events = [];
-    const eventMap = new Map(); // イベントIDでイベントを追跡
-    const lastIntensities = new Array(intensityData.length).fill(0); // 最後の強度を記録
-    let baseTime = Date.now(); // ベースとなる開始時刻を記録
+    const newEventMap = new Map();
+    const eventAssignments = new Map(); // 観測点 -> イベント
+
     intensityData.forEach((intensity, index) => {
         const location = locations[index];
-        const intensityChange = Math.abs(intensity - lastIntensities[index]); // 強度の変化量を計算
-        // 震度が閾値を超えた場合、かつ過去の強度との差が一定以上ならば
-        if (intensity >= threshold && intensityChange >= minMagnitudeChange) {
-            // 時刻の差異を強度の変化量やインデックスで作成
-            const timeOffset = Math.round(intensityChange * 100); // 強度の変化に応じてオフセットを決定
-            const currentTime = new Date(baseTime + (index * 1) + timeOffset).toISOString(); // 1秒ごとにずらし、強度変化に応じてオフセット
-            let eventId = `event-${index}`;
-            // 近隣の観測点をチェック
+        const id = `station-${index}`;
+
+        // === 観測点ごとの履歴を保持 ===
+        if (!historyMap.has(id)) historyMap.set(id, []);
+        const history = historyMap.get(id);
+        history.push({ time: now, value: intensity });
+        // 過去10秒より古い履歴を削除
+        while (history.length > 0 && now - history[0].time > historyWindow * 1000) {
+            history.shift();
+        }
+
+        // === 差分を計算 ===
+        const oldest = history[0]?.value ?? intensity;
+        const diff = intensity - oldest;
+
+        // === 閾値を超えていたら処理開始 ===
+        if (intensity >= threshold && diff >= minMagnitudeChange) {
+            // 近隣インデックスを取得
             const neighbors = [index - 1, index + 1].filter(i => i >= 0 && i < intensityData.length);
-            // 近隣の観測点でイベントが検出されたかチェック
-            neighbors.forEach(neighborIndex => {
-                const neighborIntensity = intensityData[neighborIndex];
-                if (neighborIntensity >= threshold && Math.abs(neighborIntensity - lastIntensities[neighborIndex]) >= minMagnitudeChange) {
-                    eventId = `event-${Math.min(index, neighborIndex)}`;
+            let mergedEventId = null;
+
+            // 近隣の観測点が既存イベントに属しているか確認
+            for (const ni of neighbors) {
+                const neighborId = `station-${ni}`;
+                const eventId = eventAssignments.get(neighborId);
+                if (eventId && previousEvents.has(eventId)) {
+                    mergedEventId = eventId;
+                    break;
                 }
-            });
-            // 既存のイベントIDがあれば統合
-            if (eventMap.has(eventId)) {
-                const existingEvent = eventMap.get(eventId);
-                existingEvent.lastDetectedAt = currentTime;
-                existingEvent.locations.push(location);
-                existingEvent.maxIntensity = Math.max(existingEvent.maxIntensity, intensity);
-                // イベント情報も時刻と共に更新
-                existingEvent.detectedAt.push(currentTime);  // 時刻をリストとして追加
-            } else {
-                // 新しいイベントを作成
-                eventMap.set(eventId, {
-                    id: eventId,
-                    location: location,
-                    intensity: intensity,
-                    detectedAt: [currentTime],  // 時刻をリストとして追加
-                    maxIntensity: intensity,
-                    locations: [location],
-                });
             }
-            // イベント情報を配列に追加 (位置と地名と時刻)
+
+            // イベントIDを決定
+            const eventId = mergedEventId || `event-${index}-${now}`;
+
+            // 既存イベントがあるなら更新、ないなら新規作成
+            if (!newEventMap.has(eventId)) {
+                newEventMap.set(eventId, {
+                    id: eventId,
+                    createdAt: now,
+                    lastUpdated: now,
+                    maxIntensity: intensity,
+                    stationIds: new Set([id]),
+                });
+            } else {
+                const ev = newEventMap.get(eventId);
+                ev.lastUpdated = now;
+                ev.maxIntensity = Math.max(ev.maxIntensity, intensity);
+                ev.stationIds.add(id);
+            }
+
+            // 観測点をイベントに紐づけ
+            eventAssignments.set(id, eventId);
+
+            // === 返却形式に合わせてイベントを追加 ===
+            const currentTime = new Date(now).toISOString();
             events.push([location[0], location[1], currentTime]);
         }
-        // 最後の強度を更新
-        lastIntensities[index] = intensity;
     });
+
     return events;
 }
-
 

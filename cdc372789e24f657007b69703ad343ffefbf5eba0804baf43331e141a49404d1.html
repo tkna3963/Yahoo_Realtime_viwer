@@ -158,8 +158,8 @@
                 document.getElementById("EEWTYPE").textContent = IsEEWType(data.yahoo_datas) || "--";
                 document.getElementById("calc-intensity").textContent = data.yahoo_datas.calcIntensity || "--";
                 document.getElementById("magnitude").textContent = data.yahoo_datas.magnitude || "--";
-                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 8)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%)` || "--";
-                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 4)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%)` || "--";
+                document.getElementById("p-radius").textContent = `${data.yahoo_datas.pRadius}km(約${(Math.round(data.SFCD / 6)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.pRadius / data.SFCD) * 100)}%)` || "--";
+                document.getElementById("s-radius").textContent = `${data.yahoo_datas.sRadius}km(約${(Math.round(data.SFCD / 3.5)) - calculateTimeDifference(parseCustomDate(data["yahoo_datas"]["get_date"]), parseCustomDate(data.yahoo_datas.originTime))}秒 ${Math.round((data.yahoo_datas.sRadius / data.SFCD) * 100)}%)` || "--";
                 document.getElementById("reportNum").textContent = `${data.yahoo_datas.reportNum}(${data.yahoo_datas.isFinal})` || "--";
 
                 if (data.SFCI >= 0) {
@@ -290,21 +290,51 @@
         }
 
         let earthquakeMarker = null;
-        let EarthquakesPCircle = null;
-        let EarthquakesSCircle = null;
+        let EarthquakesPEllipse = null;
+        let EarthquakesSEllipse = null;
+        function generateEllipsePoints(centerLatLng, radiusX, radiusY, angleDeg = 0, numPoints = 60) {
+            const latlngs = [];
+            const angleRad = angleDeg * Math.PI / 180;
+            const a = 6378137.0; // 赤道半径（m）
+            const f = 1 / 298.257223563; // 扁平率
+            const b = a * (1 - f); // 極半径（m）
+            const lat = Number(centerLatLng[0]);
+            const lng = Number(centerLatLng[1]);
+            const latRad = lat * Math.PI / 180;
+            const cosLat = Math.cos(latRad);
+            const sinLat = Math.sin(latRad);
+            const N = a / Math.sqrt(1 - (2 * f - f * f) * sinLat * sinLat); // 子午線曲率半径
+            const M = a * (1 - f) ** 2 / Math.pow(1 - (2 * f - f * f) * sinLat * sinLat, 1.5); // 子午線曲率半径
+            for (let i = 0; i < numPoints; i++) {
+                const theta = 2 * Math.PI * (i / numPoints);
+                const x = radiusX * Math.cos(theta); // 経度方向
+                const y = radiusY * Math.sin(theta); // 緯度方向
+                const xr = x * Math.cos(angleRad) - y * Math.sin(angleRad);
+                const yr = x * Math.sin(angleRad) + y * Math.cos(angleRad);
+                const deltaLat = (yr / M) * (180 / Math.PI);
+                const deltaLng = (xr / (N * cosLat)) * (180 / Math.PI);
+                const newLat = Number((lat + deltaLat).toFixed(8));
+                const newLng = Number((lng + deltaLng).toFixed(8));
+                if (isFinite(newLat) && isFinite(newLng)) {
+                    latlngs.push([newLat, newLng]);
+                }
+            }
+            return latlngs;
+        }
+
         function EEWCircle(data) {
             if (data === null) {
                 if (earthquakeMarker) {
                     map.removeLayer(earthquakeMarker);
                     earthquakeMarker = null;
                 }
-                if (EarthquakesPCircle) {
-                    map.removeLayer(EarthquakesPCircle);
-                    EarthquakesPCircle = null;
+                if (EarthquakesPEllipse) {
+                    map.removeLayer(EarthquakesPEllipse);
+                    EarthquakesPEllipse = null;
                 }
-                if (EarthquakesSCircle) {
-                    map.removeLayer(EarthquakesSCircle);
-                    EarthquakesSCircle = null;
+                if (EarthquakesSEllipse) {
+                    map.removeLayer(EarthquakesSEllipse);
+                    EarthquakesSEllipse = null;
                 }
                 return;
             }
@@ -314,39 +344,36 @@
                 iconAnchor: [9, 9],
                 popupAnchor: [0, 0],
             });
+            const latlng = [data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude];
             if (earthquakeMarker) {
-                earthquakeMarker.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude])
-                    .setIcon(xIcon)
-                    .openPopup();
+                earthquakeMarker.setLatLng(latlng).setIcon(xIcon).openPopup();
             } else {
-                earthquakeMarker = L.marker([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], { icon: xIcon, interactive: false })
+                earthquakeMarker = L.marker(latlng, { icon: xIcon, interactive: false })
                     .addTo(map)
                     .openPopup();
             }
-            if (EarthquakesPCircle) {
-                EarthquakesPCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
-                EarthquakesPCircle.setRadius(data.yahoo_datas.pRadius * 1000);
+            const pPoints = generateEllipsePoints(latlng, data.yahoo_datas.pRadius * 1000, data.yahoo_datas.pRadius * 1000 * 0.7);
+            if (EarthquakesPEllipse) {
+                EarthquakesPEllipse.setLatLngs(pPoints);
             } else {
-                EarthquakesPCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
+                EarthquakesPEllipse = L.polygon(pPoints, {
                     color: 'blue',
                     fillColor: 'blue',
                     fillOpacity: 0,
-                    radius: data.yahoo_datas.pRadius * 1000,
                 }).addTo(map);
             }
-            if (EarthquakesSCircle) {
-                EarthquakesSCircle.setLatLng([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude]);
-                EarthquakesSCircle.setRadius(data.yahoo_datas.sRadius * 1000);
+            const sPoints = generateEllipsePoints(latlng, data.yahoo_datas.sRadius * 1000, data.yahoo_datas.sRadius * 1000 * 0.7);
+            if (EarthquakesSEllipse) {
+                EarthquakesSEllipse.setLatLngs(sPoints);
                 if (document.getElementById("SWave_Auto_zoom").checked && data.yahoo_datas.sRadius != 0) {
-                    const bounds = EarthquakesSCircle.getBounds();
+                    const bounds = L.polygon(sPoints).getBounds();
                     map.fitBounds(bounds);
                 }
             } else {
-                EarthquakesSCircle = L.circle([data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude], {
+                EarthquakesSEllipse = L.polygon(sPoints, {
                     color: 'red',
                     fillColor: 'red',
                     fillOpacity: 0,
-                    radius: data.yahoo_datas.sRadius * 1000,
                 }).addTo(map);
             }
         }
@@ -397,6 +424,8 @@
 
             // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
+            console.table(ShakeDetectionPoint);
+
             shakeSquares.forEach(square => map.removeLayer(square));
             let firstPoints = ShakeDetectionPoint.slice(-20);
             firstPoints.forEach(([lat, lon, timestamp], index) => {
@@ -496,6 +525,7 @@
         function main() {
             console.time()
             const datas_bords = datas_bord();
+            console.table(datas_bords["yahoo_datas"])
             const locate_latitude = datas_bords.latitude || 0;
             const locate_longitude = datas_bords.longitude || 0;
             if (locate_latitude !== 0 && locate_longitude !== 0) {
@@ -542,7 +572,7 @@
                 }
 
                 const keihouUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}${IsEEWType(datas_bords["yahoo_datas"])}`);
-                if(keihouUpdates && IsEEWType(datas_bords["yahoo_datas"])!="緊急地震速報(予報)"){
+                if (keihouUpdates && IsEEWType(datas_bords["yahoo_datas"]) != "緊急地震速報(予報)") {
                     playAudio("Required_files\\Siren1 (B).wav")
                 }
             } else {
