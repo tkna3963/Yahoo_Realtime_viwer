@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahooリアルタイム地震情報板</title>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <link rel="icon" href="Required_files/epicenter.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#317EFB">
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        //作業&変換関数部
+        function playAudio(srcurl) {
+            const audio = new Audio(srcurl);
+            audio.play().catch(function (error) {
+                console.error("音声の再生に失敗しました:", error);
+            });
+        }
+
+
+        //map
+        const map = L.map('map').setView([35.689, 139.692], 4);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+        }).addTo(map);
+
+        var info_display = L.control({ position: 'topright' });
+        info_display.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info-display');
+            div.innerHTML = '<textarea id="info_display" style="background:rgb(0,0,0,0.2)"></textarea>';
+            return div;
+        };
+        info_display.addTo(map);
+
+        var SWave_Auto_zoom = L.control({ position: 'topright' });
+        SWave_Auto_zoom.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'SWave_Auto_zoom');
+            div.innerHTML = '<span>SAZ<input id="SWave_Auto_zoom" type="checkbox" checked></span>';
+            return div;
+        };
+        SWave_Auto_zoom.addTo(map);
+
+        let coloringLayer = null;
+        let markerLayer = null;
+        let cachedGeoJSON = null; // キャッシュ用
+        function EEWColoringMap(data) {
+            const handleData = (geojsonData) => {
+                const onEachFeature = (feature, layer) => {
+                    const key = feature.properties.code || feature.properties.name;
+                    const intensity = maps?.areaSFC?.[key] ?? "不明";
+                    const areaName = maps?.areaName?.[key] ?? "名称不明";
+                    layer.bindPopup(`<strong>${areaName}</strong><br>震度:${getShindoLabel(intensity)}`);
+                };
+                if (!coloringLayer) {
+                    coloringLayer = L.geoJSON(null).addTo(map);
+                } else {
+                    coloringLayer.clearLayers();
+                }
+                if (markerLayer) {
+                    map.removeLayer(markerLayer);
+                    markerLayer = null;
+                }
+                labelLayer = L.layerGroup().addTo(map);
+                if (data === null) {
+                    coloringLayer.addData(geojsonData).setStyle({
+                        color: '#000',
+                        weight: 1,
+                        fillColor: 'gray',
+                        fillOpacity: 0.7
+                    });
+                    coloringLayer.bringToBack();
+                    return;
+                }
+                document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
+                playAudio("Required_files\\Continue4.wav");
+                const [sfcData, nameData, arvData, dblData] = data;
+                const maps = { areaSFC: {}, areaName: {}, Arv: {}, DBL: {} };
+                geojsonData.features.forEach((feature, index) => {
+                    const key = feature.properties.code || feature.properties.name || `index${index}`;
+                    maps.areaSFC[key] = sfcData?.[index] ?? 0;
+                    maps.areaName[key] = nameData?.[index] ?? feature.properties.name ?? "不明";
+                    maps.Arv[key] = arvData?.[index] ?? 0;
+                    maps.DBL[key] = dblData?.[index] ?? 0;
+                });
+                coloringLayer.addData(geojsonData).setStyle(feature => {
+                    const key = feature.properties.code || feature.properties.name;
+                    const intensity = maps.areaSFC[key] ?? 0;
+                    return {
+                        weight: 2,
+                        fillColor: intensity >= 0 ? getSeismicColor(intensity) : 'black',
+                        color: '#4b617d',
+                        fillOpacity: 0.7
+                    };
+                });
+                coloringLayer.bringToBack();
+            };
+            if (cachedGeoJSON) {
+                handleData(cachedGeoJSON);
+            } else {
+                fetch('Required_files\\saibun.json')
+                    .then(response => response.json())
+                    .then(geojsonData => {
+                        cachedGeoJSON = geojsonData;
+                        handleData(geojsonData);
+                    });
+            }
+        }
+
+        let earthquakeMarker = null;
+        let EarthquakesPEllipse = null;
+        let EarthquakesSEllipse = null;
+        function generateEllipsePoints(centerLatLng, radiusX, radiusY, angleDeg = 0, numPoints = 60) {
+            const latlngs = [];
+            const angleRad = angleDeg * Math.PI / 180;
+            const a = 6378137.0; // 赤道半径（m）
+            const f = 1 / 298.257223563; // 扁平率
+            const b = a * (1 - f); // 極半径（m）
+            const lat = Number(centerLatLng[0]);
+            const lng = Number(centerLatLng[1]);
+            const latRad = lat * Math.PI / 180;
+            const cosLat = Math.cos(latRad);
+            const sinLat = Math.sin(latRad);
+            const N = a / Math.sqrt(1 - (2 * f - f * f) * sinLat * sinLat); // 子午線曲率半径
+            const M = a * (1 - f) ** 2 / Math.pow(1 - (2 * f - f * f) * sinLat * sinLat, 1.5); // 子午線曲率半径
+            for (let i = 0; i < numPoints; i++) {
+                const theta = 2 * Math.PI * (i / numPoints);
+                const x = radiusX * Math.cos(theta); // 経度方向
+                const y = radiusY * Math.sin(theta); // 緯度方向
+                const xr = x * Math.cos(angleRad) - y * Math.sin(angleRad);
+                const yr = x * Math.sin(angleRad) + y * Math.cos(angleRad);
+                const deltaLat = (yr / M) * (180 / Math.PI);
+                const deltaLng = (xr / (N * cosLat)) * (180 / Math.PI);
+                const newLat = Number((lat + deltaLat).toFixed(8));
+                const newLng = Number((lng + deltaLng).toFixed(8));
+                if (isFinite(newLat) && isFinite(newLng)) {
+                    latlngs.push([newLat, newLng]);
+                }
+            }
+            return latlngs;
+        }
+
+        function EEWCircle(data) {
+            if (data === null) {
+                if (earthquakeMarker) {
+                    map.removeLayer(earthquakeMarker);
+                    earthquakeMarker = null;
+                }
+                if (EarthquakesPEllipse) {
+                    map.removeLayer(EarthquakesPEllipse);
+                    EarthquakesPEllipse = null;
+                }
+                if (EarthquakesSEllipse) {
+                    map.removeLayer(EarthquakesSEllipse);
+                    EarthquakesSEllipse = null;
+                }
+                return;
+            }
+            let xIcon = L.icon({
+                iconUrl: 'Required_files/epicenter.png',
+                iconSize: [20, 20],
+                iconAnchor: [9, 9],
+                popupAnchor: [0, 0],
+            });
+            const latlng = [data.yahoo_datas.Wave_latitude, data.yahoo_datas.Wave_longitude];
+            if (earthquakeMarker) {
+                earthquakeMarker.setLatLng(latlng).setIcon(xIcon).openPopup();
+            } else {
+                earthquakeMarker = L.marker(latlng, { icon: xIcon, interactive: false })
+                    .addTo(map)
+                    .openPopup();
+            }
+            const pPoints = generateEllipsePoints(latlng, data.yahoo_datas.pRadius * 1000, data.yahoo_datas.pRadius * 1000 * 0.7);
+            if (EarthquakesPEllipse) {
+                EarthquakesPEllipse.setLatLngs(pPoints);
+            } else {
+                EarthquakesPEllipse = L.polygon(pPoints, {
+                    color: 'blue',
+                    fillColor: 'blue',
+                    fillOpacity: 0,
+                }).addTo(map);
+            }
+            const sPoints = generateEllipsePoints(latlng, data.yahoo_datas.sRadius * 1000, data.yahoo_datas.sRadius * 1000 * 0.7);
+            if (EarthquakesSEllipse) {
+                EarthquakesSEllipse.setLatLngs(sPoints);
+                if (document.getElementById("SWave_Auto_zoom").checked && data.yahoo_datas.sRadius != 0) {
+                    const bounds = L.polygon(sPoints).getBounds();
+                    map.fitBounds(bounds);
+                }
+            } else {
+                EarthquakesSEllipse = L.polygon(sPoints, {
+                    color: 'red',
+                    fillColor: 'red',
+                    fillOpacity: 0,
+                }).addTo(map);
+            }
+        }
+
+        let KyoushinLayer = L.layerGroup().addTo(map);
+        let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
+        let KyoushinPreviousData = new Map();
+        let KyoushinPreviousMarkers = new Map();
+        let shakeSquares = [];
+        let previousClosestPoint = null;
+        let KyoushinMarker = null;
+        function KyoushinMoniter(data, locate) {
+            const Slist = data.seismicIntensityList.length;
+            if (Slist !== Poinsts.length) {
+                KyoushinLayer.clearLayers();
+                KyoushinPreviousData.clear();
+                KyoushinPreviousMarkers.clear();
+                return;
+            }
+            for (let i = 0; i < Poinsts.length; i++) {
+                const point = Poinsts[i];
+                const intensity = data.seismicIntensityList[i];
+                if (KyoushinPreviousMarkers.has(i)) {
+                    let oldMarker = KyoushinPreviousMarkers.get(i);
+                    if (oldMarker) {
+                        KyoushinLayer.removeLayer(oldMarker);
+                    }
+                    KyoushinPreviousMarkers.delete(i);
+                }
+                if (data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
+                    if (KyoushinPreviousData.has(i) && KyoushinPreviousData.get(i) === intensity) {
+                        continue;
+                    }
+                }
+                KyoushinPreviousData.set(i, intensity);
+                const YM_KM_C_data = YM_KM_C(point[0], point[1]);
+                let newMarker = L.circle([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], {
+                    color: getSeismicColor(intensity),
+                    fillColor: getSeismicColor(intensity),
+                    fillOpacity: 1,
+                    radius: 100,
+                }).addTo(KyoushinLayer);
+                newMarker.on('click', () => {
+                    newMarker.bindPopup(`id:${YM_KM_C_data.id} <br>地点:${YM_KM_C_data.closest_KM_site}(${i + 1}) <br>震度:${intensity} <progress min="0" value="${intensity}" max="6.5"></progress>`).openPopup();
+                });
+                KyoushinPreviousMarkers.set(i, newMarker);
+            }
+
+            // 揺れ検知
+            const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
+            console.table(ShakeDetectionPoint);
+
+            shakeSquares.forEach(square => map.removeLayer(square));
+            let firstPoints = ShakeDetectionPoint.slice(-20);
+            firstPoints.forEach(([lat, lon, timestamp], index) => {
+                let baseSize = 1000;
+                let bounds = [
+                    [lat - 0.2, lon - 0.2],
+                    [lat + 0.2, lon + 0.2]
+                ];
+                let square = L.rectangle(bounds, {
+                    color: 'white',
+                    fillColor: '#f03',
+                    fillOpacity: 0.1
+                }).addTo(map);
+                shakeSquares.push(square);
+                setTimeout(() => {
+                    map.removeLayer(square);
+                }, 500);
+                if (ShakeDetectionPoint.length >= 3 & ShakeDetectionPoint.length <= 4 & data.yahoo_datas.situation === "EEW_hasn't_been_issued") {
+                    playAudio("Required_files\\NEWS2 (A).wav")
+                }
+            });
+
+            let closestPoint = null;
+            let minDistance = Infinity;
+            if (locate) {
+                for (let i = 0; i < Poinsts.length; i++) {
+                    const point = Poinsts[i];
+                    const distance = calculateDistance([locate[0], locate[1]], [point[0], point[1]]);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestPoint = point;
+                    }
+                }
+                if (closestPoint) {
+                    const YM_KM_C_data = YM_KM_C(closestPoint[0], closestPoint[1]);
+                    const intensity = data.seismicIntensityList[Poinsts.indexOf(closestPoint)];
+                    const nearicon = L.divIcon({
+                        className: 'custom-icon',
+                        html: `
+                            <div style="display: inline-flex; align-items: center; font-size: 10px;">
+                                <div style="
+                                    width: 20px;
+                                    height: 20px;
+                                    background-color: ${getSeismicColor(intensity)};
+                                    border-radius: 50%;
+                                    color: black;
+                                    font-size: 10px;
+                                    text-align: center;
+                                    line-height: 20px;
+                                    font-weight: bold;
+                                    margin-right: 4px;
+                                ">
+                                    ${getShindoLabel(intensity)}
+                                </div>
+                                <span">${YM_KM_C_data.closest_KM_site}</span>
+                            </div>
+                        `,
+                        iconSize: [60, 20],
+                        iconAnchor: [10, 10],
+                    });
+                    if (KyoushinMarker) {
+                        KyoushinMarker.setLatLng([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon]); // ← 追加
+                        KyoushinMarker.setIcon(nearicon); // ← 追加
+                    } else {
+                        KyoushinMarker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: nearicon }).addTo(map);
+                    }
+                }
+
+            }
+
+            //震度1以上の観測点を50点ポップアップ
+            const intensityThreshold = 1;
+            const pointsAboveThreshold = data.seismicIntensityList.reduce((acc, intensity, index) => {
+                if (intensity >= intensityThreshold) {
+                    acc.push(Poinsts[index]);
+                }
+                return acc;
+            }, []);
+            pointsAboveThreshold.slice(0, 50).filter(point => point !== closestPoint).forEach(point => {
+                const YM_KM_C_data = YM_KM_C(point[0], point[1]);
+                const intensity = data.seismicIntensityList[Poinsts.indexOf(point)];
+                const icon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="font-size: 10px; color: blue;">${YM_KM_C_data.closest_KM_site.slice(0, 1)}:${intensity}</div>`,
+                    iconSize: [5, 5],
+                    iconAnchor: [5, 5],
+                });
+                const marker = L.marker([YM_KM_C_data.KM_lat, YM_KM_C_data.KM_lon], { icon: icon }).addTo(map);
+                setTimeout(() => {
+                    map.removeLayer(marker);
+                }, 1000);
+            });
+        }
+
+        let currentLocationMarker = null;
+        //実行部
+        function main() {
+            console.time()
+            const datas_bords = datas_bord();
+            console.table(datas_bords["yahoo_datas"])
+            const locate_latitude = datas_bords.latitude || 0;
+            const locate_longitude = datas_bords.longitude || 0;
+            if (locate_latitude !== 0 && locate_longitude !== 0) {
+                if (currentLocationMarker) {
+                    currentLocationMarker.setLatLng([locate_latitude, locate_longitude]);
+                } else {
+                    //アイコンをRequired_files/terminal.png
+                    const loicon = L.icon({
+                        iconUrl: 'Required_files/terminal.png',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15],
+                    });
+                    currentLocationMarker = L.marker([locate_latitude, locate_longitude], { icon: loicon }).addTo(map);
+                }
+            }
+            InformationPrinter(datas_bords);
+            DetailedInformationPrinter(datas_bords);
+            KyoushinMoniter(datas_bords, [locate_latitude, locate_longitude]);
+            document.getElementById("get_time").textContent = datas_bords.yahoo_datas.get_date;
+            document.getElementById("jsonarea").value = objectToJsonText(datas_bords);
+
+            document.getElementById("location").textContent = `緯度: ${locate_latitude},経度: ${locate_longitude}`;
+
+            if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
+                if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
+                    EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist]);
+                }
+                EEWCircle(datas_bords);
+                //音声s
+                //EEW
+                const checkEEW = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}`)
+                if (checkEEW) {
+                    map.setView([datas_bords.yahoo_datas.Wave_latitude, datas_bords.yahoo_datas.Wave_longitude], 7, {
+                        animate: true,
+                        duration: 1
+                    });
+                    text_speak(`${IsEEWType(datas_bords.yahoo_datas)}　しんおう:${datas_bords.yahoo_datas.regionName}`);
+                    playAudio("Required_files\\Buzzer1.wav")
+                }
+                //続報音
+                const checkEEWUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}第${datas_bords["yahoo_datas"]["reportNum"]}`)
+                if (checkEEWUpdates) {
+                    playAudio("Required_files\\Continue1.wav")
+                }
+
+                const keihouUpdates = checkDuplicateData(`${datas_bords["yahoo_datas"]["reportId"]}${IsEEWType(datas_bords["yahoo_datas"])}`);
+                if (keihouUpdates && IsEEWType(datas_bords["yahoo_datas"]) != "緊急地震速報(予報)") {
+                    playAudio("Required_files\\Siren1 (B).wav")
+                }
+            } else {
+                EEWColoringMap(null);
+                EEWCircle(null);
+            }
+            console.timeEnd()
+        }
+
+        function startup() {
+            main();
+            setInterval(main, 1000);
+        }
+
+        window.addEventListener("load", startup);
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker 登録成功:', reg.scope))
+                    .catch(err => console.error('Service Worker 登録失敗:', err));
+            });
+        }
+
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'update') {
+                    console.log('新しいバージョンが利用可能です。ページをリロードします。');
+                    window.location.reload();
+                }
+            });
+        }
+        //開いたらダウンロードするようにする
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    if (reg.installing) {
+                        console.log('Service Worker is installing');
+                    } else if (reg.waiting) {
+                        console.log('Service Worker is waiting');
+                    } else if (reg.active) {
+                        console.log('Service Worker is active');
+                    }
+                })
+                .catch(error => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>

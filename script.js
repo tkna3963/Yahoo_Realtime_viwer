@@ -602,6 +602,7 @@ function datas_bord() {
     const Areanamelist = [];
     const Arvlist = [];
     const DBLlist = [];
+    const centerlalolist=[];
     const YahooDatas = yahooRealtimeData();
     results_datalist.yahoo_datas = YahooDatas;
     results_datalist.seismicIntensityList = YahooDatas["strongEarthquake"].split('').map(char => seismicIntensityConversion(char));
@@ -628,11 +629,13 @@ function datas_bord() {
             Areanamelist.push(centerP.properties.name);
             Arvlist.push(Number(centerP.properties.arv));
             DBLlist.push(AreaSFC.epicenterDistance);
+            centerlalolist.push([centerP.latitude,centerP.longitude])
         }
         results_datalist.AreaSFClist = AreaSFClist
         results_datalist.Areanamelist = Areanamelist
         results_datalist.Arvlist = Arvlist
         results_datalist.DBLlist = DBLlist
+        results_datalist.centerlalolist=centerlalolist
     }
 
     return results_datalist;
