@@ -191,100 +191,64 @@
         };
         SWave_Auto_zoom.addTo(map);
 
-        let coloringLayer = null;
-        let markerLayer = null;
-        let cachedGeoJSON = null; // キャッシュ用
+        var Color_Auto_zoom = L.control({ position: 'topright' });
+        Color_Auto_zoom.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'Color_Auto_zoom');
+            div.innerHTML = '<span>CAZ<input id="Color_Auto_zoom" type="checkbox"></span>';
+            return div;
+        };
+        Color_Auto_zoom.addTo(map);
 
+        let coloringLayer = null, markerLayer = null, cachedGeoJSON = null;
         function EEWColoringMap(data) {
-            const handleData = (geojsonData) => {
-                const onEachFeature = (feature, layer) => {
-                    const key = feature.properties.code || feature.properties.name;
-                    const intensity = maps?.areaSFC?.[key] ?? "不明";
-                    const areaName = maps?.areaName?.[key] ?? "名称不明";
-                    layer.bindPopup(`<strong>${areaName}</strong><br>震度:${getShindoLabel(intensity)}`);
-                };
-
-                if (!coloringLayer) {
-                    coloringLayer = L.geoJSON(null, { onEachFeature }).addTo(map);
-                } else {
-                    coloringLayer.clearLayers();
-                }
-
-                if (markerLayer) {
-                    map.removeLayer(markerLayer);
-                    markerLayer = null;
-                }
-
+            const handleData = (geojson) => {
+                coloringLayer ??= L.geoJSON(null).addTo(map);
+                coloringLayer.clearLayers();
+                markerLayer && (map.removeLayer(markerLayer), markerLayer = null);
                 labelLayer = L.layerGroup().addTo(map);
-
-                if (data === null) {
-                    coloringLayer.addData(geojsonData).setStyle({
-                        color: '#000',
-                        weight: 1,
-                        fillColor: 'gray',
-                        fillOpacity: 0.7
-                    });
-                    coloringLayer.bringToBack();
-                    return;
+                if (!data) {
+                    coloringLayer.addData(geojson).setStyle({ color: '#000', weight: 1, fillColor: 'gray', fillOpacity: 0.7 });
+                    return coloringLayer.bringToBack();
                 }
-
                 document.getElementById("arascalcintensity").textContent = countSeismicIntensity(data[0]) || "なし";
                 playAudio("Required_files\\Continue4.wav");
-
-                const [sfcData, nameData, arvData, dblData] = data;
-                const maps = { areaSFC: {}, areaName: {}, Arv: {}, DBL: {}, centerlalolist: {} };
-
-                geojsonData.features.forEach((feature, index) => {
-                    const key = feature.properties.code || feature.properties.name || `index${index}`;
-                    maps.areaSFC[key] = sfcData?.[index] ?? 0;
-                    maps.areaName[key] = nameData?.[index] ?? feature.properties.name ?? "不明";
-                    maps.Arv[key] = arvData?.[index] ?? 0;
-                    maps.DBL[key] = dblData?.[index] ?? 0;
-                    maps.centerlalolist[key] = dblData?.[index] ?? 0; // 中心座標 [lat, lng]
+                const [sfc, name, arv, dbl] = data;
+                const maps = {}, keys = ["areaSFC", "areaName", "Arv", "DBL", "centerlalolist"];
+                keys.forEach(k => maps[k] = {});
+                geojson.features.forEach((f, i) => {
+                    const key = f.properties.code || f.properties.name || `i${i}`;
+                    maps.areaSFC[key] = sfc?.[i] ?? 0;
+                    maps.areaName[key] = name?.[i] ?? f.properties.name ?? "不明";
+                    maps.Arv[key] = arv?.[i] ?? 0;
+                    maps.DBL[key] = dbl?.[i] ?? 0;
+                    maps.centerlalolist[key] = dbl?.[i] ?? null;
                 });
-
-                coloringLayer.addData(geojsonData).setStyle(feature => {
-                    const key = feature.properties.code || feature.properties.name;
-                    const intensity = maps.areaSFC[key] ?? 0;
-                    return {
-                        weight: 2,
-                        fillColor: intensity >= 0 ? getSeismicColor(intensity) : 'black',
-                        color: '#4b617d',
-                        fillOpacity: 0.7
-                    };
+                coloringLayer.addData(geojson).setStyle(f => {
+                    const k = f.properties.code || f.properties.name, i = maps.areaSFC[k] ?? 0;
+                    return { weight: 2, fillColor: i >= 0 ? getSeismicColor(i) : 'black', color: '#4b617d', fillOpacity: 0.7 };
                 });
-
+                coloringLayer.eachLayer(l => {
+                    const f = l.feature, k = f.properties.code || f.properties.name;
+                    l.bindPopup(`<strong>${maps.areaName[k]}</strong><br>震度:${getShindoLabel(maps.areaSFC[k] ?? "不明")}`);
+                });
                 coloringLayer.bringToBack();
-
-                // ▼▼▼ 震度1以上の地域をズーム調整 ▼▼▼
-                const boundsPoints = [];
-
-                for (const key in maps.areaSFC) {
-                    const intensity = maps.areaSFC[key];
-                    const center = maps.centerlalolist?.[key];
-
-                    if (intensity >= 1 && Array.isArray(center) && center.length === 2) {
-                        boundsPoints.push(center);
-                    }
-                }
-
-                if (boundsPoints.length > 0) {
-                    const bounds = L.latLngBounds(boundsPoints);
-                    map.fitBounds(bounds, { padding: [50, 50] });
-                }
-                // ▲▲▲ ズーム処理ここまで ▲▲▲
-            };
-
-            if (cachedGeoJSON) {
-                handleData(cachedGeoJSON);
-            } else {
-                fetch('Required_files\\saibun.json')
-                    .then(response => response.json())
-                    .then(geojsonData => {
-                        cachedGeoJSON = geojsonData;
-                        handleData(geojsonData);
+                if (document.getElementById("Color_Auto_zoom").checked) {
+                    document.getElementById("SWave_Auto_zoom").checked = false;
+                    const bounds = L.latLngBounds([]);
+                    coloringLayer.eachLayer(l => {
+                        const k = l.feature.properties.code || l.feature.properties.name;
+                        if ((maps.areaSFC[k] ?? 0) >= 1.5 && l.getBounds) bounds.extend(l.getBounds());
                     });
-            }
+                    const epi = data?.[5];
+                    if (Array.isArray(epi) && epi.length === 2) bounds.extend(L.latLng(epi[0], epi[1]));
+                    if (bounds.isValid()) {
+                        map.fitBounds(bounds, { maxZoom: 10, duration: 1 });
+                    }
+
+                }
+            };
+            cachedGeoJSON ? handleData(cachedGeoJSON)
+                : fetch('Required_files\\saibun.json').then(r => r.json()).then(g => { cachedGeoJSON = g; handleData(g); });
         }
 
         let earthquakeMarker = null;
@@ -391,6 +355,12 @@
                 KyoushinPreviousMarkers.clear();
                 return;
             }
+            if (document.getElementById("Color_Auto_zoom").checked) {
+                KyoushinLayer.clearLayers();
+                KyoushinPreviousData.clear();
+                KyoushinPreviousMarkers.clear();
+                return;
+            }
             for (let i = 0; i < Poinsts.length; i++) {
                 const point = Poinsts[i];
                 const intensity = data.seismicIntensityList[i];
@@ -422,8 +392,6 @@
 
             // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
-            console.table(ShakeDetectionPoint);
-
             shakeSquares.forEach(square => map.removeLayer(square));
             let firstPoints = ShakeDetectionPoint.slice(-20);
             firstPoints.forEach(([lat, lon, timestamp], index) => {
@@ -523,7 +491,6 @@
         function main() {
             console.time()
             const datas_bords = datas_bord();
-            console.table(datas_bords["yahoo_datas"])
             const locate_latitude = datas_bords.latitude || 0;
             const locate_longitude = datas_bords.longitude || 0;
             if (locate_latitude !== 0 && locate_longitude !== 0) {
@@ -549,7 +516,7 @@
 
             if (datas_bords.yahoo_datas.situation === "EEW_has_been_issued") {
                 if (checkDuplicateData([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist])) {
-                    EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist, datas_bords.centerlalolist]);
+                    EEWColoringMap([datas_bords.AreaSFClist, datas_bords.Areanamelist, datas_bords.Arvlist, datas_bords.DBLlist, datas_bords.centerlalolist, [datas_bords.yahoo_datas.Wave_latitude, datas_bords.yahoo_datas.Wave_longitude]]);
                 }
                 EEWCircle(datas_bords);
                 //音声s

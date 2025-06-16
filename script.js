@@ -513,7 +513,7 @@ function calculateDistanceAttenuation(magJMA, depth, epicenterLocation, pointLoc
     // 基盤の速度（Vs = 400 m/s）の変換
     const maxSpeed400 = maxSpeed600 * 1.31;
     // 増幅率を使って最終的な速度を計算
-    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 * (Number(amplificationFactor) + 1.7);
+    const surfaceSpeed = amplificationFactor === 0 ? 0 : maxSpeed400 * (Number(amplificationFactor));
     // 震度を計算
     const intensity = parseFloat((2.68 + 1.72 * Math.log10(surfaceSpeed)).toFixed(2));
     // 結果を返す（震度、震央からの距離、最大速度、増幅率）
