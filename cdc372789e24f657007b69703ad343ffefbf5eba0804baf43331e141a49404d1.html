@@ -237,7 +237,7 @@
                     const bounds = L.latLngBounds([]);
                     coloringLayer.eachLayer(l => {
                         const k = l.feature.properties.code || l.feature.properties.name;
-                        if ((maps.areaSFC[k] ?? 0) >= 1.5 && l.getBounds) bounds.extend(l.getBounds());
+                        if ((maps.areaSFC[k] ?? 0) >= 2.5 && l.getBounds) bounds.extend(l.getBounds());
                     });
                     const epi = data?.[5];
                     if (Array.isArray(epi) && epi.length === 2) bounds.extend(L.latLng(epi[0], epi[1]));
