@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yahooリアルタイム地震情報板</title>
     <script src="script.js"></script>
+    <script src="kairyouyurekenti.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
     <link rel="icon" href="Required_files/epicenter.png">
+
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#317EFB">
@@ -339,7 +341,9 @@
                 }).addTo(map);
             }
         }
-
+        let historyMap = new Map();
+        let activeEvents = new Map();
+        let neighborCache = new Map();
         let KyoushinLayer = L.layerGroup().addTo(map);
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let KyoushinPreviousData = new Map();
@@ -392,6 +396,13 @@
 
             // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
+            const result =newdetectEarthquakeEvents(data.seismicIntensityList, Poinsts, historyMap,activeEvents,neighborCache)
+            historyMap = result.historyMap;
+            activeEvents = result.events;
+            neighborCache = result.neighborCache;
+            console.log(result.detections,result.events,result.newAlerts)
+
+
             shakeSquares.forEach(square => map.removeLayer(square));
             let firstPoints = ShakeDetectionPoint.slice(-20);
             firstPoints.forEach(([lat, lon, timestamp], index) => {
