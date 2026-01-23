@@ -254,6 +254,7 @@
         }
 
         let earthquakeMarker = null;
+        let KentiEpicenterMarker = null;
         let EarthquakesPEllipse = null;
         let EarthquakesSEllipse = null;
         function generateEllipsePoints(centerLatLng, radiusX, radiusY, angleDeg = 0, numPoints = 60) {
@@ -344,6 +345,9 @@
         let historyMap = new Map();
         let activeEvents = new Map();
         let neighborCache = new Map();
+        let detectionTimeMap = new Map();
+        let epicenterEstimator = new EpicenterEstimator();
+
         let KyoushinLayer = L.layerGroup().addTo(map);
         let Poinsts = loadJSON("https://weather-kyoshin.west.edge.storage-yahoo.jp/SiteList/sitelist.json")["items"];
         let KyoushinPreviousData = new Map();
@@ -396,14 +400,34 @@
 
             // 揺れ検知
             const ShakeDetectionPoint = detectEvents(data.seismicIntensityList, Poinsts);
-            const result =newdetectEarthquakeEvents(data.seismicIntensityList, Poinsts, historyMap,activeEvents,neighborCache)
-            historyMap = result.historyMap;
-            activeEvents = result.events;
-            neighborCache = result.neighborCache;
-            console.log(result.detections,result.events,result.newAlerts)
+            const Kentikairesult = detectEarthquakeWithEpicenter(data.seismicIntensityList, Poinsts, historyMap, activeEvents, neighborCache, detectionTimeMap, epicenterEstimator)
+            historyMap = Kentikairesult.historyMap;
+            activeEvents = Kentikairesult.events;
+            neighborCache = Kentikairesult.neighborCache;
+            detectionTimeMap = Kentikairesult.detectionTimeMap;
+            epicenterEstimator = Kentikairesult.epicenterEstimator;
+            console.log(Kentikairesult)
+            const epicenter = Kentikairesult.epicenterEstimator.currentEpicenter;
+            if (epicenter) {
+                const { lat, lon,numDetections} = epicenter;
+                const popupText = `Lat: ${lat}<br>Lon: ${lon} <br> numDetections:${numDetections}`;
 
+                if (KentiEpicenterMarker) {
+                    KentiEpicenterMarker
+                        .setLatLng([lat, lon])
+                        .bindPopup(popupText).openPopup();
+                } else {
+                    KentiEpicenterMarker = L.marker([lat, lon])
+                        .addTo(map)
+                        .bindPopup(popupText).openPopup();
+                }
+            } else {
+                if (KentiEpicenterMarker) {
+                    map.removeLayer(KentiEpicenterMarker);
+                    KentiEpicenterMarker = null;
+                }
+            }
 
-            shakeSquares.forEach(square => map.removeLayer(square));
             let firstPoints = ShakeDetectionPoint.slice(-20);
             firstPoints.forEach(([lat, lon, timestamp], index) => {
                 let baseSize = 1000;
