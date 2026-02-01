@@ -409,7 +409,7 @@
             console.log(Kentikairesult)
             const epicenter = Kentikairesult.epicenterEstimator.currentEpicenter;
             if (epicenter) {
-                const { lat, lon,numDetections} = epicenter;
+                const { lat, lon, numDetections } = epicenter;
                 const popupText = `Lat: ${lat}<br>Lon: ${lon} <br> numDetections:${numDetections}`;
 
                 if (KentiEpicenterMarker) {
@@ -420,6 +420,7 @@
                     KentiEpicenterMarker = L.marker([lat, lon])
                         .addTo(map)
                         .bindPopup(popupText).openPopup();
+                    map.fitBounds(KentiEpicenterMarker.getBounds())
                 }
             } else {
                 if (KentiEpicenterMarker) {
